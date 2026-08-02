@@ -351,6 +351,7 @@
         <div>• <span class="kbd">ЛКМ Клік</span> Встановити / Взаємодіяти з блоком</div>
         <div>• <span class="kbd">ПКМ</span> Видалити блок | <span class="kbd">Пробіл</span> Пауза</div>
         <div>• <span class="kbd">W/A/S/D</span> Обертання | <span class="kbd">E</span> Виділення</div>
+        <div>• <span class="kbd">ПКМ Затиснути</span> Виділити конструкцію (режим E)</div>
         <div>• <span class="kbd">Ctrl+C/X/V</span> Copy/Cut/Paste | <span class="kbd">Del</span> Видалити виділене</div>
     </div>
 
@@ -2835,7 +2836,8 @@
         document.getElementById('mob-select').addEventListener('click', toggleSelectMode);
 
         _selOverlay.addEventListener('mousedown', (e) => {
-            if (!_selectMode) return;
+            if (!_selectMode || e.button !== 2) return;
+            e.preventDefault();
             _selDragStart = { x: e.clientX, y: e.clientY };
             _selRect.style.display = 'block';
             _selRect.style.left = e.clientX + 'px';
@@ -2843,6 +2845,8 @@
             _selRect.style.width = '0px';
             _selRect.style.height = '0px';
         });
+
+        _selOverlay.addEventListener('contextmenu', (e) => { if (_selectMode) e.preventDefault(); });
 
         window.addEventListener('mousemove', (e) => {
             if (!_selDragStart) return;
