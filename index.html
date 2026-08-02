@@ -187,6 +187,13 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.4); max-width: 320px; margin-bottom: 5px;
             max-height: 60vh; overflow-y: auto; overscroll-behavior: contain;
         }
+        #block-search {
+            width: 100%; padding: 7px 10px; border: 2px solid #1e375a; border-radius: 8px;
+            background: rgba(255,255,255,0.95); color: #1e375a; font-size: 13px;
+            outline: none; box-sizing: border-box;
+        }
+        #block-search::placeholder { color: #7986cb; }
+        #block-search:focus { border-color: #fbc02d; }
         #matrix-popup::-webkit-scrollbar { width: 8px; }
         #matrix-popup::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); border-radius: 8px; }
         #matrix-popup::-webkit-scrollbar-thumb { background: #1e375a; border-radius: 8px; }
@@ -341,6 +348,7 @@
         <div id="status-panel">Сигнал: <span id="status-text" class="status-run">АВТОМАТИЧНИЙ РУХ</span></div>
 
         <div id="matrix-popup">
+            <input type="text" id="block-search" placeholder="Пошук блоку..." autocomplete="off">
             <div class="matrix-row">
                 <div class="matrix-cell"><div class="matrix-item" data-id="arrow"><svg viewBox="0 0 24 24"><path fill="#5a1111" d="M12 2L4 11h5v11h6V11h5z"/></svg></div><div class="block-title">Стрілка</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="repeater"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="#1e375a" stroke="#fbc02d" stroke-width="2"/><path fill="#fbc02d" d="M12 5L6 12h4v7h4v-7h4z"/><circle cx="8" cy="17" r="1.5" fill="#fff"/><circle cx="16" cy="17" r="1.5" fill="#fff"/></svg></div><div class="block-title">Повторювач</div></div>
@@ -2647,7 +2655,24 @@
             phantom.querySelector('svg').innerHTML = currentSvg; phantom.style.display = 'flex';
         }));
 
-        btnMatrix.addEventListener('click', () => matrixPopup.style.display = matrixPopup.style.display === 'flex' ? 'none' : 'flex');
+        btnMatrix.addEventListener('click', () => {
+            const opening = matrixPopup.style.display !== 'flex';
+            matrixPopup.style.display = opening ? 'flex' : 'none';
+            if (opening) {
+                const searchInput = document.getElementById('block-search');
+                searchInput.value = '';
+                searchInput.focus();
+                matrixPopup.querySelectorAll('.matrix-cell').forEach(c => c.style.display = '');
+            }
+        });
+
+        document.getElementById('block-search').addEventListener('input', (e) => {
+            const q = e.target.value.trim().toLowerCase();
+            matrixPopup.querySelectorAll('.matrix-cell').forEach(cell => {
+                const title = (cell.querySelector('.block-title') || {}).textContent || '';
+                cell.style.display = (!q || title.toLowerCase().includes(q)) ? '' : 'none';
+            });
+        });
         
         document.querySelectorAll('.matrix-item').forEach(item => {
             item.addEventListener('click', () => {
