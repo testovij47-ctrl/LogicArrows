@@ -210,7 +210,19 @@
         @media (pointer: coarse), (max-width: 768px) {
             #hints { display: none !important; }
 
-            #mobile-controls { display: flex; position: absolute; right: 10px; bottom: 80px; z-index: 100; flex-direction: column; gap: 6px; align-items: center; }
+            #mobile-controls { display: none; position: absolute; right: 10px; bottom: 80px; z-index: 100; flex-direction: column; gap: 6px; align-items: center; }
+            #mobile-controls.open { display: flex; }
+
+            #mob-toggle {
+                display: flex; position: absolute; right: 10px; bottom: 80px; z-index: 101;
+                width: 44px; height: 44px; border-radius: 10px; border: 2px solid #3b66c4;
+                background: rgba(30, 55, 90, 0.92); color: #fff; font-size: 20px;
+                align-items: center; justify-content: center; cursor: pointer;
+                -webkit-tap-highlight-color: transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                touch-action: manipulation;
+            }
+            #mob-toggle:active { transform: scale(0.92); background: #3b66c4; }
+            #mob-toggle.open { background: #fbc02d; color: #1e375a; border-color: #fbc02d; }
 
             .mobile-row { display: flex; gap: 6px; align-items: center; }
 
@@ -303,6 +315,7 @@
         <div>• <span class="kbd">W/A/S/D</span> Обертання елемента перед встановленням</div>
     </div>
 
+    <button id="mob-toggle">🎮</button>
     <div id="mobile-controls">
         <div class="mobile-row">
             <button class="mob-btn mob-rot-btn" data-rot="0" title="Північ">↑</button>
@@ -2462,6 +2475,13 @@
         let _touchStartTime = 0;
         let _isTouchDragging = false;
         let _lastPinchDist = 0;
+
+        const mobToggle = document.getElementById('mob-toggle');
+        const mobControls = document.getElementById('mobile-controls');
+        mobToggle.addEventListener('click', () => {
+            mobControls.classList.toggle('open');
+            mobToggle.classList.toggle('open');
+        });
 
         document.querySelectorAll('.mob-rot-btn').forEach(btn => {
             btn.addEventListener('click', () => {
