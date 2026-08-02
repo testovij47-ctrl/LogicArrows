@@ -8,7 +8,7 @@
         * { box-sizing: border-box; }
         :root { --cell-size: 40px; }
         body {
-            margin: 0; padding: 0; background-color: #f0f2f5;
+            margin: 0; padding: 0; background-color: #ffdede;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow: hidden; height: 100vh; user-select: none;
             transition: background-color 0.5s ease;
@@ -22,10 +22,10 @@
 
         #grid-canvas {
             position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-            background-color: #ffffff;
+            background-color: #ffdede;
             background-image: 
-                linear-gradient(to right, #e2e5ec 1px, transparent 1px),
-                linear-gradient(to bottom, #e2e5ec 1px, transparent 1px);
+                linear-gradient(to right, #f0b8b8 1px, transparent 1px),
+                linear-gradient(to bottom, #f0b8b8 1px, transparent 1px);
             background-size: var(--cell-size) var(--cell-size);
             background-position: 0px 0px;
             transition: background-color 0.5s ease, background-image 0.5s ease;
