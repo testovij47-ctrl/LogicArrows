@@ -204,6 +204,49 @@
         .kbd { background: #e0e0e0; padding: 1px 4px; border-radius: 3px; font-family: monospace; font-weight: bold; }
 
         .servo-arm { transition: transform 0.2s ease-in-out; transform-origin: 12px 12px; }
+
+        #mobile-controls { display: none; }
+
+        @media (pointer: coarse), (max-width: 768px) {
+            #hints { display: none !important; }
+
+            #mobile-controls { display: flex; position: absolute; right: 10px; bottom: 80px; z-index: 100; flex-direction: column; gap: 6px; align-items: center; }
+
+            .mobile-row { display: flex; gap: 6px; align-items: center; }
+
+            .mob-btn {
+                width: 44px; height: 44px; border-radius: 10px; border: 2px solid #3b66c4;
+                background: rgba(30, 55, 90, 0.92); color: #fff; font-size: 18px;
+                display: flex; align-items: center; justify-content: center;
+                cursor: pointer; -webkit-tap-highlight-color: transparent;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3); touch-action: manipulation;
+            }
+            .mob-btn:active { transform: scale(0.92); background: #3b66c4; }
+            .mob-btn.active { background: #fbc02d; color: #1e375a; border-color: #fbc02d; }
+            .mob-btn.active:active { background: #f9a825; }
+
+            .mob-rot-btn { font-size: 20px; font-weight: bold; }
+
+            .mob-del-btn { background: rgba(229, 57, 53, 0.85); border-color: #e53935; }
+            .mob-del-btn.active { background: #e53935; border-color: #ff5252; }
+
+            .mob-pause-btn { font-size: 16px; }
+            .mob-zoom-btn { font-size: 22px; font-weight: bold; }
+
+            #top-ui { top: 8px; gap: 6px; }
+            .time-toggle-btn { padding: 6px 10px; font-size: 11px; }
+
+            #ui-wrapper { bottom: 8px; gap: 6px; }
+            #hotbar-container { padding: 4px 6px; gap: 4px; }
+            .slot { width: 38px; height: 38px; }
+            #btn-matrix { width: 32px; height: 38px; font-size: 14px; }
+
+            #matrix-popup { max-width: 90vw; max-height: 50vh; }
+            .matrix-cell { width: 42px; }
+            .matrix-item { width: 36px; height: 36px; }
+
+            #config-modal, #worlds-modal, #password-modal { width: 90vw !important; max-width: 300px; }
+        }
     </style>
 </head>
 <body>
@@ -258,6 +301,27 @@
         <div>• <span class="kbd">ЛКМ Клік</span> Встановити / Взаємодіяти з блоком</div>
         <div>• <span class="kbd">ПКМ</span> Видалити блок | <span class="kbd">Пробіл</span> Пауза</div>
         <div>• <span class="kbd">W/A/S/D</span> Обертання елемента перед встановленням</div>
+    </div>
+
+    <div id="mobile-controls">
+        <div class="mobile-row">
+            <button class="mob-btn mob-rot-btn" data-rot="0" title="Північ">↑</button>
+        </div>
+        <div class="mobile-row">
+            <button class="mob-btn mob-rot-btn" data-rot="270" title="Захід">←</button>
+            <button class="mob-btn mob-pause-btn" id="mob-pause" title="Пауза">⏸</button>
+            <button class="mob-btn mob-rot-btn" data-rot="90" title="Схід">→</button>
+        </div>
+        <div class="mobile-row">
+            <button class="mob-btn mob-rot-btn" data-rot="180" title="Південь">↓</button>
+        </div>
+        <div class="mobile-row" style="margin-top:4px;">
+            <button class="mob-btn mob-del-btn" id="mob-delete" title="Режим видалення">✕</button>
+        </div>
+        <div class="mobile-row" style="margin-top:4px;">
+            <button class="mob-btn mob-zoom-btn" id="mob-zoom-out" title="Зменшити">−</button>
+            <button class="mob-btn mob-zoom-btn" id="mob-zoom-in" title="Збільшити">+</button>
+        </div>
     </div>
 
     <div id="ui-wrapper">
@@ -795,6 +859,7 @@
         }, { passive: false });
 
         container.addEventListener('click', (e) => {
+            if (_isDeleteMode) return;
             if (e.target.closest('#ui-wrapper') || e.target.closest('#hints') || e.target.closest('#config-modal') || e.target.closest('#top-ui')) return;
 
             const moveDist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
@@ -2390,6 +2455,170 @@
             }
             if (anyChanged) doGameTick();
         });
+
+        // ==================== МОБІЛЬНЕ КЕРУВАННЯ ====================
+        let _isDeleteMode = false;
+        let _touchStartX = 0, _touchStartY = 0;
+        let _touchStartTime = 0;
+        let _isTouchDragging = false;
+        let _lastPinchDist = 0;
+
+        document.querySelectorAll('.mob-rot-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentRotation = parseInt(btn.dataset.rot);
+                phantom.style.transform = `rotate(${currentRotation}deg)`;
+                document.querySelectorAll('.mob-rot-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        const mobPause = document.getElementById('mob-pause');
+        mobPause.addEventListener('click', () => {
+            toggleGamePlayback();
+            mobPause.textContent = isGameRunning ? '⏸' : '▶';
+            mobPause.classList.toggle('active', !isGameRunning);
+        });
+
+        const mobDelete = document.getElementById('mob-delete');
+        mobDelete.addEventListener('click', () => {
+            _isDeleteMode = !_isDeleteMode;
+            mobDelete.classList.toggle('active', _isDeleteMode);
+            container.style.cursor = _isDeleteMode ? 'crosshair' : 'grab';
+        });
+
+        document.getElementById('mob-zoom-in').addEventListener('click', () => {
+            const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+            const factor = 1.2;
+            const oldSize = CELL_SIZE;
+            const newSize = Math.min(CELL_SIZE_MAX, CELL_SIZE * factor);
+            if (newSize === oldSize) return;
+            const gx = (cx - camX) / oldSize, gy = (cy - camY) / oldSize;
+            CELL_SIZE = newSize;
+            camX = cx - gx * CELL_SIZE;
+            camY = cy - gy * CELL_SIZE;
+            document.documentElement.style.setProperty('--cell-size', `${CELL_SIZE}px`);
+            updateObjectsPositions();
+        });
+
+        document.getElementById('mob-zoom-out').addEventListener('click', () => {
+            const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+            const factor = 1 / 1.2;
+            const oldSize = CELL_SIZE;
+            const newSize = Math.min(CELL_SIZE_MAX, Math.max(CELL_SIZE_MIN, CELL_SIZE * factor));
+            if (newSize === oldSize) return;
+            const gx = (cx - camX) / oldSize, gy = (cy - camY) / oldSize;
+            CELL_SIZE = newSize;
+            camX = cx - gx * CELL_SIZE;
+            camY = cy - gy * CELL_SIZE;
+            document.documentElement.style.setProperty('--cell-size', `${CELL_SIZE}px`);
+            updateObjectsPositions();
+        });
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.target.closest('#ui-wrapper') || e.target.closest('#config-modal') || e.target.closest('#top-ui') || e.target.closest('#mobile-controls')) return;
+
+            if (e.touches.length === 1) {
+                const t = e.touches[0];
+                _touchStartX = t.clientX;
+                _touchStartY = t.clientY;
+                _touchStartTime = Date.now();
+                _isTouchDragging = false;
+
+                const cellX = Math.floor((t.clientX - camX) / CELL_SIZE);
+                const cellY = Math.floor((t.clientY - camY) / CELL_SIZE);
+                const key = `${cellX},${cellY}`;
+
+                if (!gridObjects[key]) {
+                    isDraggingMap = true;
+                    dragStartX = t.clientX - camX;
+                    dragStartY = t.clientY - camY;
+                }
+            } else if (e.touches.length === 2) {
+                isDraggingMap = false;
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                _lastPinchDist = Math.hypot(dx, dy);
+            }
+        }, { passive: true });
+
+        container.addEventListener('touchmove', (e) => {
+            if (e.target.closest('#ui-wrapper') || e.target.closest('#config-modal') || e.target.closest('#top-ui') || e.target.closest('#mobile-controls')) return;
+
+            if (e.touches.length === 1 && isDraggingMap) {
+                const t = e.touches[0];
+                const dx = Math.abs(t.clientX - _touchStartX);
+                const dy = Math.abs(t.clientY - _touchStartY);
+                if (dx > 5 || dy > 5) _isTouchDragging = true;
+
+                camX = t.clientX - dragStartX;
+                camY = t.clientY - dragStartY;
+                mapMotionDetected = true;
+                updateObjectsPositions();
+            } else if (e.touches.length === 2) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.hypot(dx, dy);
+
+                if (_lastPinchDist > 0) {
+                    const ratio = dist / _lastPinchDist;
+                    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    const oldSize = CELL_SIZE;
+                    const newSize = Math.min(CELL_SIZE_MAX, Math.max(CELL_SIZE_MIN, CELL_SIZE * ratio));
+                    if (newSize !== oldSize) {
+                        const gx = (cx - camX) / oldSize;
+                        const gy = (cy - camY) / oldSize;
+                        CELL_SIZE = newSize;
+                        camX = cx - gx * CELL_SIZE;
+                        camY = cy - gy * CELL_SIZE;
+                        document.documentElement.style.setProperty('--cell-size', `${CELL_SIZE}px`);
+                        updateObjectsPositions();
+                    }
+                }
+                _lastPinchDist = dist;
+            }
+        }, { passive: false });
+
+        container.addEventListener('touchend', (e) => {
+            if (e.target.closest('#ui-wrapper') || e.target.closest('#config-modal') || e.target.closest('#top-ui') || e.target.closest('#mobile-controls')) return;
+
+            if (e.touches.length === 0) {
+                isDraggingMap = false;
+                _lastPinchDist = 0;
+
+                if (!_isTouchDragging && (Date.now() - _touchStartTime) < 300) {
+                    const cellX = Math.floor((_touchStartX - camX) / CELL_SIZE);
+                    const cellY = Math.floor((_touchStartY - camY) / CELL_SIZE);
+                    const key = `${cellX},${cellY}`;
+
+                    if (_isDeleteMode) {
+                        if (gridObjects[key]) {
+                            let obj = gridObjects[key];
+                            if (obj.type === 'web_display') {
+                                let disp = currentDisplays.find(d => cellX >= d.x && cellX < d.x + d.w && cellY >= d.y && cellY < d.y + d.h);
+                                if (disp) {
+                                    for (let h = 0; h < disp.h; h++) {
+                                        for (let w = 0; w < disp.w; w++) {
+                                            let dk = `${disp.x + w},${disp.y + h}`;
+                                            if (gridObjects[dk]) { gridObjects[dk].element.remove(); delete gridObjects[dk]; }
+                                        }
+                                    }
+                                } else { gridObjects[key].element.remove(); delete gridObjects[key]; }
+                            } else { gridObjects[key].element.remove(); delete gridObjects[key]; }
+                            recalculateMultiBlockDisplays();
+                            drawLighting();
+                            scheduleAutoSave();
+                        }
+                    } else {
+                        const clickEvt = new MouseEvent('click', { clientX: _touchStartX, clientY: _touchStartY, bubbles: true });
+                        container.dispatchEvent(clickEvt);
+                    }
+                }
+                _isTouchDragging = false;
+            }
+        }, { passive: true });
+        // ==================== /МОБІЛЬНЕ КЕРУВАННЯ ====================
 
         slots.forEach(s => s.addEventListener('click', () => {
             slots.forEach(slot => slot.classList.remove('active'));
