@@ -212,6 +212,37 @@
 
         .servo-arm { transition: transform 0.2s ease-in-out; transform-origin: 12px 12px; }
 
+        .grid-object.selected { outline: 2px dashed #fbc02d !important; outline-offset: -1px; background: rgba(251,192,45,0.18) !important; }
+
+        #sel-toolbar {
+            display: none; position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+            z-index: 200; background: rgba(30,55,90,0.95); border: 2px solid #3b66c4; border-radius: 12px;
+            padding: 6px 10px; gap: 5px; box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+            align-items: center;
+        }
+        #sel-toolbar.visible { display: flex; }
+        #sel-toolbar button {
+            width: 40px; height: 36px; border: none; border-radius: 6px; cursor: pointer;
+            font-size: 16px; font-weight: bold; color: #fff; touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #sel-toolbar button:active { transform: scale(0.9); }
+        .sel-copy-btn { background: #1e88e5; }
+        .sel-cut-btn { background: #ff9800; }
+        .sel-paste-btn { background: #4caf50; }
+        .sel-del-btn { background: #e53935; }
+        .sel-cancel-btn { background: #555; }
+        #sel-count { color: #fff; font-size: 11px; font-weight: bold; padding: 0 4px; white-space: nowrap; }
+
+        #sel-selecting-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 80; cursor: crosshair;
+        }
+        #sel-rect {
+            display: none; position: absolute; border: 2px dashed #fbc02d;
+            background: rgba(251,192,45,0.12); pointer-events: none; z-index: 81;
+        }
+
         #mobile-controls { display: none; }
 
         @media (pointer: coarse), (max-width: 768px) {
@@ -319,7 +350,19 @@
         <div>• <span class="kbd">ЛКМ Затиснути</span> Перетягувати карту</div>
         <div>• <span class="kbd">ЛКМ Клік</span> Встановити / Взаємодіяти з блоком</div>
         <div>• <span class="kbd">ПКМ</span> Видалити блок | <span class="kbd">Пробіл</span> Пауза</div>
-        <div>• <span class="kbd">W/A/S/D</span> Обертання елемента перед встановленням</div>
+        <div>• <span class="kbd">W/A/S/D</span> Обертання | <span class="kbd">E</span> Виділення</div>
+        <div>• <span class="kbd">Ctrl+C/X/V</span> Copy/Cut/Paste | <span class="kbd">Del</span> Видалити виділене</div>
+    </div>
+
+    <div id="sel-selecting-overlay"></div>
+    <div id="sel-rect"></div>
+    <div id="sel-toolbar">
+        <span id="sel-count">0</span>
+        <button class="sel-copy-btn" id="sel-copy" title="Копіювати">📋</button>
+        <button class="sel-cut-btn" id="sel-cut" title="Вирізати">✂</button>
+        <button class="sel-paste-btn" id="sel-paste" title="Вставити">📥</button>
+        <button class="sel-del-btn" id="sel-delete" title="Видалити">🗑</button>
+        <button class="sel-cancel-btn" id="sel-cancel" title="Скасувати">✕</button>
     </div>
 
     <button id="mob-toggle">🎮</button>
@@ -337,6 +380,7 @@
         </div>
         <div class="mobile-row" style="margin-top:4px;">
             <button class="mob-btn mob-del-btn" id="mob-delete" title="Режим видалення">✕</button>
+            <button class="mob-btn" id="mob-select" title="Виділення" style="background:rgba(33,150,243,0.85);border-color:#2196f3;">⬚</button>
         </div>
         <div class="mobile-row" style="margin-top:4px;">
             <button class="mob-btn mob-zoom-btn" id="mob-zoom-out" title="Зменшити">−</button>
@@ -2647,6 +2691,253 @@
             }
         }, { passive: true });
         // ==================== /МОБІЛЬНЕ КЕРУВАННЯ ====================
+
+        // ==================== ВИДІЛЕННЯ КОНСТРУКЦІЙ ====================
+        let _selectMode = false;
+        let _selectedKeys = new Set();
+        let _selOverlay = document.getElementById('sel-selecting-overlay');
+        let _selRect = document.getElementById('sel-rect');
+        let _selToolbar = document.getElementById('sel-toolbar');
+        let _selCountEl = document.getElementById('sel-count');
+        let _selDragStart = null;
+        let _clipboard = null;
+        const CLIPBOARD_KEY = 'logicArrowsClipboard';
+
+        function loadClipboard() {
+            try { _clipboard = JSON.parse(localStorage.getItem(CLIPBOARD_KEY) || 'null'); } catch(e) { _clipboard = null; }
+        }
+        function saveClipboard() {
+            try { localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(_clipboard)); } catch(e) {}
+        }
+        loadClipboard();
+
+        function toggleSelectMode() {
+            _selectMode = !_selectMode;
+            const btn = document.getElementById('mob-select');
+            if (btn) btn.classList.toggle('active', _selectMode);
+            _selOverlay.style.display = _selectMode ? 'block' : 'none';
+            if (!_selectMode) clearSelection();
+            container.style.cursor = _selectMode ? 'crosshair' : (_isDeleteMode ? 'crosshair' : 'grab');
+        }
+
+        function clearSelection() {
+            _selectedKeys.forEach(k => {
+                const o = gridObjects[k];
+                if (o && o.element) o.element.classList.remove('selected');
+            });
+            _selectedKeys.clear();
+            _selToolbar.classList.remove('visible');
+            _selCountEl.textContent = '0';
+        }
+
+        function selectBlocksInRect(x1, y1, x2, y2) {
+            clearSelection();
+            const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+            const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+            for (let key in gridObjects) {
+                const o = gridObjects[key];
+                if (o.x >= minX && o.x <= maxX && o.y >= minY && o.y <= maxY) {
+                    _selectedKeys.add(key);
+                    o.element.classList.add('selected');
+                }
+            }
+            if (_selectedKeys.size > 0) {
+                _selToolbar.classList.add('visible');
+                _selCountEl.textContent = `${_selectedKeys.size}`;
+            }
+        }
+
+        function serializeBlock(o) {
+            return {
+                type: o.type, x: o.x, y: o.y, rotation: o.rotation ?? 0,
+                leverToggled: o.leverToggled, frequency: o.frequency,
+                rgbChannel: o.rgbChannel, channelValue: o.channelValue,
+                smokePercent: o.smokePercent, tempVal: o.tempVal, humidityVal: o.humidityVal,
+                batteryCharge: o.batteryCharge, rainPercent: o.rainPercent, buzzerFreq: o.buzzerFreq,
+                sensitivity: o.sensitivity, repeaterDelay: o.repeaterDelay,
+                targetAngle: o.targetAngle, displayDigit: o.displayDigit,
+                keyLabel: o.keyLabel, assignedCode: o.assignedCode,
+                lightMode: o.lightMode, filterColor: o.filterColor,
+                pistonHeadShape: o.pistonHeadShape,
+                countdownSeconds: o.countdownSeconds,
+                password: o.password,
+                scanPattern: o.scanPattern,
+                morseText: o.morseText,
+                saltCharge: o.saltCharge,
+                thermoThreshold: o.thermoThreshold, thermoMode: o.thermoMode,
+                pulseTarget: o.pulseTarget,
+                alarmHour: o.alarmHour, alarmMinute: o.alarmMinute,
+                numThreshold: o.numThreshold, numOperator: o.numOperator,
+                convertColor: o.convertColor,
+                latchSeconds: o.latchSeconds,
+                routerMap: o.routerMap,
+                freqDivisor: o.freqDivisor,
+                clampMin: o.clampMin, clampMax: o.clampMax
+            };
+        }
+
+        function copySelected(cut) {
+            if (_selectedKeys.size === 0) return;
+            let blocks = [];
+            let minGX = Infinity, minGY = Infinity;
+            _selectedKeys.forEach(k => {
+                const o = gridObjects[k];
+                if (o) {
+                    minGX = Math.min(minGX, o.x);
+                    minGY = Math.min(minGY, o.y);
+                    blocks.push(serializeBlock(o));
+                }
+            });
+            blocks.forEach(b => { b.x -= minGX; b.y -= minGY; });
+            _clipboard = { blocks, originGX: minGX, originGY: minGY };
+            saveClipboard();
+            if (cut) {
+                _selectedKeys.forEach(k => {
+                    const o = gridObjects[k];
+                    if (o) { o.element.remove(); delete gridObjects[k]; }
+                });
+                _selectedKeys.clear();
+                _selToolbar.classList.remove('visible');
+                recalculateMultiBlockDisplays();
+                drawLighting();
+                scheduleAutoSave();
+            }
+        }
+
+        function pasteClipboard(pasteGX, pasteGY) {
+            if (!_clipboard || !_clipboard.blocks) return;
+            _clipboard.blocks.forEach(saved => {
+                const nx = saved.x + pasteGX;
+                const ny = saved.y + pasteGY;
+                const key = `${nx},${ny}`;
+                if (gridObjects[key]) return;
+                const objCopy = { ...saved, x: nx, y: ny };
+                instantiateObject(objCopy);
+            });
+            recalculateMultiBlockDisplays();
+            drawLighting();
+            scheduleAutoSave();
+        }
+
+        function deleteSelected() {
+            if (_selectedKeys.size === 0) return;
+            _selectedKeys.forEach(k => {
+                const o = gridObjects[k];
+                if (o) { o.element.remove(); delete gridObjects[k]; }
+            });
+            _selectedKeys.clear();
+            _selToolbar.classList.remove('visible');
+            recalculateMultiBlockDisplays();
+            drawLighting();
+            scheduleAutoSave();
+        }
+
+        document.getElementById('mob-select').addEventListener('click', toggleSelectMode);
+
+        _selOverlay.addEventListener('mousedown', (e) => {
+            if (!_selectMode) return;
+            _selDragStart = { x: e.clientX, y: e.clientY };
+            _selRect.style.display = 'block';
+            _selRect.style.left = e.clientX + 'px';
+            _selRect.style.top = e.clientY + 'px';
+            _selRect.style.width = '0px';
+            _selRect.style.height = '0px';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!_selDragStart) return;
+            const x = Math.min(_selDragStart.x, e.clientX);
+            const y = Math.min(_selDragStart.y, e.clientY);
+            const w = Math.abs(e.clientX - _selDragStart.x);
+            const h = Math.abs(e.clientY - _selDragStart.y);
+            _selRect.style.left = x + 'px';
+            _selRect.style.top = y + 'px';
+            _selRect.style.width = w + 'px';
+            _selRect.style.height = h + 'px';
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (!_selDragStart) return;
+            _selRect.style.display = 'none';
+            const x1 = Math.floor((_selDragStart.x - camX) / CELL_SIZE);
+            const y1 = Math.floor((_selDragStart.y - camY) / CELL_SIZE);
+            const x2 = Math.floor((e.clientX - camX) / CELL_SIZE);
+            const y2 = Math.floor((e.clientY - camY) / CELL_SIZE);
+            _selDragStart = null;
+            selectBlocksInRect(x1, y1, x2, y2);
+        });
+
+        _selOverlay.addEventListener('touchstart', (e) => {
+            if (!_selectMode || e.touches.length !== 1) return;
+            const t = e.touches[0];
+            _selDragStart = { x: t.clientX, y: t.clientY };
+            _selRect.style.display = 'block';
+            _selRect.style.left = t.clientX + 'px';
+            _selRect.style.top = t.clientY + 'px';
+            _selRect.style.width = '0px';
+            _selRect.style.height = '0px';
+        }, { passive: true });
+
+        _selOverlay.addEventListener('touchmove', (e) => {
+            if (!_selDragStart || e.touches.length !== 1) return;
+            const t = e.touches[0];
+            const x = Math.min(_selDragStart.x, t.clientX);
+            const y = Math.min(_selDragStart.y, t.clientY);
+            _selRect.style.left = x + 'px';
+            _selRect.style.top = y + 'px';
+            _selRect.style.width = Math.abs(t.clientX - _selDragStart.x) + 'px';
+            _selRect.style.height = Math.abs(t.clientY - _selDragStart.y) + 'px';
+        }, { passive: true });
+
+        _selOverlay.addEventListener('touchend', (e) => {
+            if (!_selDragStart) return;
+            _selRect.style.display = 'none';
+            const t = e.changedTouches[0];
+            const x1 = Math.floor((_selDragStart.x - camX) / CELL_SIZE);
+            const y1 = Math.floor((_selDragStart.y - camY) / CELL_SIZE);
+            const x2 = Math.floor((t.clientX - camX) / CELL_SIZE);
+            const y2 = Math.floor((t.clientY - camY) / CELL_SIZE);
+            _selDragStart = null;
+            selectBlocksInRect(x1, y1, x2, y2);
+        }, { passive: true });
+
+        _selOverlay.addEventListener('click', (e) => {
+            if (_selectMode && _selectedKeys.size === 0) toggleSelectMode();
+        });
+
+        document.getElementById('sel-copy').addEventListener('click', () => copySelected(false));
+        document.getElementById('sel-cut').addEventListener('click', () => copySelected(true));
+        document.getElementById('sel-paste').addEventListener('click', () => {
+            if (_clipboard && _clipboard.blocks) {
+                const cx = Math.floor((window.innerWidth / 2 - camX) / CELL_SIZE);
+                const cy = Math.floor((window.innerHeight / 2 - camY) / CELL_SIZE);
+                pasteClipboard(cx, cy);
+            }
+        });
+        document.getElementById('sel-delete').addEventListener('click', deleteSelected);
+        document.getElementById('sel-cancel').addEventListener('click', () => {
+            clearSelection();
+            if (_selectMode) toggleSelectMode();
+        });
+
+        window.addEventListener('keydown', (e) => {
+            const tag = document.activeElement && document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+            if (e.key === 'e' || e.key === 'E') { toggleSelectMode(); return; }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') { copySelected(false); return; }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'x') { copySelected(true); return; }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                if (_clipboard && _clipboard.blocks) {
+                    const cx = Math.floor((window.innerWidth / 2 - camX) / CELL_SIZE);
+                    const cy = Math.floor((window.innerHeight / 2 - camY) / CELL_SIZE);
+                    pasteClipboard(cx, cy);
+                }
+                return;
+            }
+            if (e.key === 'Delete') { deleteSelected(); return; }
+            if (e.key === 'Escape') { clearSelection(); if (_selectMode) toggleSelectMode(); }
+        });
+        // ==================== /ВИДІЛЕННЯ КОНСТРУКЦІЙ ====================
 
         slots.forEach(s => s.addEventListener('click', () => {
             slots.forEach(slot => slot.classList.remove('active'));
