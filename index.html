@@ -1519,6 +1519,7 @@
             
             recalculateMultiBlockDisplays();
             drawLighting();
+            scheduleAutoSave();
         });
 
         container.addEventListener('contextmenu', (e) => {
@@ -1553,6 +1554,7 @@
 
                 recalculateMultiBlockDisplays();
                 drawLighting();
+                scheduleAutoSave();
             }
         });
 
@@ -1806,6 +1808,7 @@
             }
             configModal.style.display = 'none';
             doGameTick();
+            scheduleAutoSave();
         };
 
         function showConfirmDialog(message, onConfirm) {
@@ -1857,6 +1860,42 @@
             try { localStorage.setItem(WORLDS_STORAGE_KEY, JSON.stringify(store)); }
             catch (e) { showAlertDialog('Не вдалося зберегти світ (можливо, сховище переповнене або недоступне).'); }
         }
+
+        // ==================== АВТОЗБЕРЕЖЕННЯ ====================
+        let _autoSaveTimer = null;
+        let _isAutoSavePaused = false;
+
+        function debounce(fn, ms) {
+            let t;
+            return function(...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), ms);
+            };
+        }
+
+        const scheduleAutoSave = debounce(() => {
+            if (_isAutoSavePaused) return;
+            if (!currentWorldName) return;
+            saveCurrentWorld(currentWorldName);
+        }, 1500);
+
+        function pauseAutoSave() { _isAutoSavePaused = true; }
+        function resumeAutoSave() { _isAutoSavePaused = false; }
+
+        setInterval(() => {
+            if (!_isAutoSavePaused && currentWorldName) {
+                saveCurrentWorld(currentWorldName);
+            }
+        }, 30000);
+
+        window.addEventListener('beforeunload', () => {
+            if (currentWorldName) {
+                let store = getWorldsStore();
+                store[currentWorldName] = { ...serializeCurrentWorld(), savedAt: Date.now() };
+                setWorldsStore(store);
+            }
+        });
+        // ==================== /АВТОЗБЕРЕЖЕННЯ ====================
 
         function serializeCurrentWorld() {
             let objects = [];
@@ -2113,6 +2152,7 @@
             let store = getWorldsStore();
             let data = store[name];
             if (!data) return;
+            pauseAutoSave();
             clearGrid();
             (data.objects || []).forEach(o => instantiateObject(o));
             currentDisplays = (data.displays || []).map(d => ({ ...d, isActive: false, incomingSignals: [] }));
@@ -2123,6 +2163,7 @@
             doGameTick();
             drawLighting();
             worldsModal.style.display = 'none';
+            resumeAutoSave();
         }
 
         function deleteWorld(name) {
@@ -3609,6 +3650,24 @@
             mapMotionDetected = false;
             drawLighting();
         }
+
+        (function autoLoadLastWorld() {
+            let store = getWorldsStore();
+            let names = Object.keys(store);
+            if (names.length === 0) return;
+            names.sort((a, b) => (store[b].savedAt || 0) - (store[a].savedAt || 0));
+            let last = names[0];
+            pauseAutoSave();
+            clearGrid();
+            let data = store[last];
+            (data.objects || []).forEach(o => instantiateObject(o));
+            currentDisplays = (data.displays || []).map(d => ({ ...d, isActive: false, incomingSignals: [] }));
+            recalculateMultiBlockDisplays();
+            currentWorldName = last;
+            worldNameInput.value = last;
+            updateObjectsPositions();
+            resumeAutoSave();
+        })();
 
         startGameLoop();
     </script>
