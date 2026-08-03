@@ -3724,7 +3724,7 @@
                     case 'color_converter': case 'latch_off_delay':
                     case 'gate_xnor': case 'balance_scale': case 'frequency_divider':
                     case 'hover_detector': case 'teleporter': case 'second_clock':
-                    case 'signal_clamp': case 'cuckoo_clock':
+                    case 'signal_clamp': case 'cuckoo_clock': case 'projector': case 'particle_gen':
                     case 'gate_not': case 'gate_and': case 'gate_xor': case 'gate_tri': case 'gate_t':
                         sendSignal(obj.x, obj.y, off.dx, off.dy, currentEmitColor, extraData); break;
                     case 'blocker':
@@ -3769,9 +3769,8 @@
 
                 if (obj.type === 'projector') {
                     const pLen = obj.projectorLength ?? 5;
-                    const pColor = obj.projectorColor || 'red';
-                    for (let i = 1; i <= pLen; i++) {
-                        sendSignal(obj.x, obj.y, off.dx * i, off.dy * i, pColor, extraData);
+                    for (let i = 2; i <= pLen; i++) {
+                        sendSignal(obj.x, obj.y, off.dx * i, off.dy * i, currentEmitColor, extraData);
                     }
                 }
 
