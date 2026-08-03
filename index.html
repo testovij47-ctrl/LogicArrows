@@ -2245,7 +2245,7 @@
                 teleportHoldUntilTick: 0, teleportSignal: null,
                 clampMin: saved.clampMin ?? 0, clampMax: saved.clampMax ?? 255,
                 lastCuckooKey: '',
-                nfcChannel: saved.nfcChannel ?? 1, nfcSignal: null
+                nfcChannel: saved.nfcChannel ?? 1
             };
 
             const go = gridObjects[key];
@@ -3363,7 +3363,6 @@
             
             currentDisplays.forEach(d => d.incomingSignals = []);
             wirelessChannels = {};
-            for (let key in gridObjects) { if (gridObjects[key].type === 'nfc_module') gridObjects[key].nfcSignal = null; }
 
             function sendSignal(fromX, fromY, dx, dy, color, extraData = {}) {
                 let targetX = fromX + dx;
@@ -3569,7 +3568,7 @@
                     case 'color_converter': case 'latch_off_delay':
                     case 'gate_xnor': case 'balance_scale': case 'frequency_divider':
                     case 'hover_detector': case 'teleporter': case 'second_clock':
-                    case 'signal_clamp': case 'cuckoo_clock': case 'nfc_module':
+                    case 'signal_clamp': case 'cuckoo_clock':
                     case 'gate_not': case 'gate_and': case 'gate_xor': case 'gate_tri': case 'gate_t':
                         sendSignal(obj.x, obj.y, off.dx, off.dy, currentEmitColor, extraData); break;
                     case 'blocker':
@@ -3597,6 +3596,19 @@
                         sendSignal(obj.x, obj.y, off.dx * 2, off.dy * 2, currentEmitColor, extraData); sendSignal(obj.x, obj.y, off.dy, -off.dx, currentEmitColor, extraData); break;
                     case 'blue_split_diag':
                         sendSignal(obj.x, obj.y, off.dx, off.dy, currentEmitColor, extraData); sendSignal(obj.x, obj.y, off.dx + (off.dy||1), off.dy + (off.dx||1), currentEmitColor, extraData); break;
+                }
+
+                if (obj.type === 'nfc_module') {
+                    sendSignal(obj.x, obj.y, off.dx, off.dy, currentEmitColor, extraData);
+                    const nfcCh = obj.nfcChannel ?? 1;
+                    const nfcOffs = [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}];
+                    for (const no of nfcOffs) {
+                        const nk = `${obj.x + no.dx},${obj.y + no.dy}`;
+                        const nb = gridObjects[nk];
+                        if (nb && nb.type === 'nfc_module' && (nb.nfcChannel ?? 1) === nfcCh) {
+                            sendSignal(obj.x, obj.y, no.dx, no.dy, currentEmitColor, extraData);
+                        }
+                    }
                 }
             }
 
@@ -3984,33 +3996,13 @@
                     }
                     signalColor = 'yellow';
                 } else if (obj.type === 'nfc_module') {
-                    const ch = obj.nfcChannel ?? 1;
-                    const offsets = [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}];
                     if (hasInput) {
-                        let sig = signals[0];
-                        obj.nfcSignal = {
-                            color: sig.color, rgbChannel: sig.rgbChannel,
-                            channelValue: sig.channelValue, smokeData: sig.smokeData,
-                            dhtData: sig.dhtData, rainData: sig.rainData
-                        };
                         nextActive = true;
+                        let sig = signals[0];
                         signalColor = sig.color;
                         signalChanVal = sig.channelValue ?? 255;
                         signalRgbChan = sig.rgbChannel || sig.color;
                         smokeVal = sig.smokeData; dhtVal = sig.dhtData; rainVal = sig.rainData;
-                        for (const off2 of offsets) {
-                            const nk = `${obj.x + off2.dx},${obj.y + off2.dy}`;
-                            const neighbor = gridObjects[nk];
-                            if (neighbor && neighbor.type === 'nfc_module' && (neighbor.nfcChannel ?? 1) === ch && neighbor !== obj) {
-                                neighbor.nfcSignal = {...obj.nfcSignal};
-                            }
-                        }
-                    } else if (obj.nfcSignal) {
-                        nextActive = true;
-                        signalColor = obj.nfcSignal.color || 'red';
-                        signalChanVal = obj.nfcSignal.channelValue ?? 255;
-                        signalRgbChan = obj.nfcSignal.rgbChannel || signalColor;
-                        smokeVal = obj.nfcSignal.smokeData; dhtVal = obj.nfcSignal.dhtData; rainVal = obj.nfcSignal.rainData;
                     } else {
                         nextActive = false;
                     }
