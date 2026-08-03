@@ -1,0 +1,35 @@
+{
+  "name": "logic-arrows",
+  "version": "1.0.0",
+  "description": "Logic Arrows — redstone-style logic + slime-physics sandbox",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.logicarrows.app",
+    "productName": "Logic Arrows",
+    "files": [
+      "index.html",
+      "main.js"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "allowScripts": {
+    "electron@35.7.5": true,
+    "electron-winstaller@5.4.0": true
+  }
+}
