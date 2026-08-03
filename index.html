@@ -932,6 +932,33 @@
                     ctxLight.restore();
                 }
             });
+
+            for (let key in gridObjects) {
+                let obj = gridObjects[key];
+                if (obj.type === 'projector' && obj.isActive) {
+                    let off = getOffset(obj.rotation);
+                    let pLen = obj.projectorLength ?? 5;
+                    let colorMap = { red: [255,80,80], green: [80,255,80], blue: [80,130,255], yellow: [255,235,100], white: [255,255,255] };
+                    let rgb = colorMap[obj.projectorColor] || [255,80,80];
+                    for (let i = 1; i <= pLen; i++) {
+                        let cx = (obj.x * CELL_SIZE) + camX + (CELL_SIZE / 2) + off.dx * i * CELL_SIZE;
+                        let cy = (obj.y * CELL_SIZE) + camY + (CELL_SIZE / 2) + off.dy * i * CELL_SIZE;
+                        let intensity = 1 - (i - 1) / pLen;
+                        let lightRadius = CELL_SIZE * (1.2 + intensity * 0.8);
+                        let gradient = ctxLight.createRadialGradient(cx, cy, 0, cx, cy, lightRadius);
+                        gradient.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.9 * intensity})`);
+                        gradient.addColorStop(0.6, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.3 * intensity})`);
+                        gradient.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.0)`);
+                        ctxLight.save();
+                        ctxLight.globalCompositeOperation = 'destination-out';
+                        ctxLight.fillStyle = gradient;
+                        ctxLight.beginPath();
+                        ctxLight.arc(cx, cy, lightRadius, 0, Math.PI * 2);
+                        ctxLight.fill();
+                        ctxLight.restore();
+                    }
+                }
+            }
         }
 
         function updateObjectsPositions() {
@@ -3670,34 +3697,8 @@
                         smokeData: chData.smokeData,
                         dhtData: chData.dhtData,
                         rainData: chData.rainData
-            });
-
-            for (let key in gridObjects) {
-                let obj = gridObjects[key];
-                if (obj.type === 'projector' && obj.isActive) {
-                    let off = getOffset(obj.rotation);
-                    let pLen = obj.projectorLength ?? 5;
-                    let colorMap = { red: '#f44336', green: '#4caf50', blue: '#2196f3', yellow: '#ffeb3b', white: '#ffffff' };
-                    let beamColor = colorMap[obj.projectorColor] || '#f44336';
-                    let startX = (obj.x * CELL_SIZE) + camX + (CELL_SIZE / 2);
-                    let startY = (obj.y * CELL_SIZE) + camY + (CELL_SIZE / 2);
-                    let endX = startX + off.dx * pLen * CELL_SIZE;
-                    let endY = startY + off.dy * pLen * CELL_SIZE;
-                    ctxLight.save();
-                    ctxLight.globalCompositeOperation = 'destination-out';
-                    ctxLight.strokeStyle = beamColor;
-                    ctxLight.lineWidth = CELL_SIZE * 0.4;
-                    ctxLight.lineCap = 'round';
-                    ctxLight.shadowColor = beamColor;
-                    ctxLight.shadowBlur = CELL_SIZE * 1.5;
-                    ctxLight.beginPath();
-                    ctxLight.moveTo(startX, startY);
-                    ctxLight.lineTo(endX, endY);
-                    ctxLight.stroke();
-                    ctxLight.restore();
+                    });
                 }
-            }
-        }
 
                 if (obj.type === 'rgb_selector') {
                     let emitColor = obj.rgbChannel || 'red';
