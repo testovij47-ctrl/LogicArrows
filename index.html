@@ -577,6 +577,9 @@
                 <div class="matrix-cell"><div class="matrix-item" data-id="signal_clamp"><svg viewBox="0 0 24 24"><rect x="2" y="10" width="20" height="4" fill="#fbc02d"/><rect x="2" y="8" width="3" height="8" fill="#455a64"/><rect x="19" y="8" width="3" height="8" fill="#455a64"/></svg></div><div class="block-title">Обмежувач Сигналу</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="cuckoo_clock"><svg viewBox="0 0 24 24"><path d="M4 22V10L12 2l8 8v12z" fill="#6d4c41" stroke="#4e342e" stroke-width="1"/><rect x="9" y="13" width="6" height="9" fill="#3e2723"/><circle cx="12" cy="9" r="3" fill="#eceff1" stroke="#4e342e" stroke-width="1"/><path d="M12 7.5v1.5l1 1" stroke="#4e342e" stroke-width="0.8" stroke-linecap="round"/></svg></div><div class="block-title">Годинникова Зозуля</div></div>
             </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="nfc_module"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#1a237e" stroke="#5c6bc0" stroke-width="1.5"/><path d="M8 8h8v2H8zM8 11h8v2H8zM8 14h8v2H8z" fill="#7986cb" opacity="0.6"/><path d="M12 4v16" stroke="#5c6bc0" stroke-width="0.8" stroke-dasharray="2 1.5"/><circle cx="12" cy="12" r="2" fill="#ffeb3b"/><path d="M10 12a2 2 0 0 1 4 0" fill="none" stroke="#ffeb3b" stroke-width="1"/><path d="M8 12a4 4 0 0 1 8 0" fill="none" stroke="#ffeb3b" stroke-width="0.8" opacity="0.6"/></svg></div><div class="block-title">NFC Модуль</div></div>
+            </div>
         </div>
 
         <div id="hotbar-container">
@@ -1441,6 +1444,19 @@
                     configModal.style.display = 'flex';
                     return;
                 }
+                if (clickedObj.type === 'nfc_module') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = "NFC Модуль";
+                    modalFields.innerHTML = `
+                        <div class="modal-row">
+                            <label>Канал (1-99):</label>
+                            <input type="number" id="cfg-nfc-channel" min="1" max="99" value="${clickedObj.nfcChannel ?? 1}">
+                        </div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Передає сигнали на сусідній NFC-модуль на тому самому каналі (відстань: 1 клітинка)</div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
                 if (clickedObj.type === 'web_display') {
                     let disp = currentDisplays.find(d => cellX >= d.x && cellX < d.x + d.w && cellY >= d.y && cellY < d.y + d.h);
                     if (disp) {
@@ -2001,6 +2017,9 @@
                     activeConfigTarget.clampMax = cMax;
                     const scBadge = activeConfigTarget.element.querySelector('.signal-clamp-badge');
                     if (scBadge) scBadge.innerText = `${cMin}-${cMax}`;
+                } else if (activeConfigTarget.type === 'nfc_module') {
+                    activeConfigTarget.nfcChannel = Math.max(1, Math.min(99, parseInt(document.getElementById('cfg-nfc-channel').value) || 1));
+                    activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.nfcChannel}`);
                 } else {
                     activeConfigTarget.frequency = parseInt(document.getElementById('cfg-freq').value) || 1;
                     activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.frequency}`);
@@ -2129,7 +2148,8 @@
                     latchSeconds: o.latchSeconds,
                     routerMap: o.routerMap,
                     freqDivisor: o.freqDivisor,
-                    clampMin: o.clampMin, clampMax: o.clampMax
+                    clampMin: o.clampMin, clampMax: o.clampMax,
+                    nfcChannel: o.nfcChannel
                 });
             }
             let displays = currentDisplays.map(d => ({
@@ -2224,7 +2244,8 @@
                 freqDivisor: saved.freqDivisor ?? 2, freqDivCounter: 0,
                 teleportHoldUntilTick: 0, teleportSignal: null,
                 clampMin: saved.clampMin ?? 0, clampMax: saved.clampMax ?? 255,
-                lastCuckooKey: ''
+                lastCuckooKey: '',
+                nfcChannel: saved.nfcChannel ?? 1, nfcSignal: null
             };
 
             const go = gridObjects[key];
@@ -2322,6 +2343,11 @@
                 b.className = 'signal-clamp-badge';
                 b.innerText = `${go.clampMin ?? 0}-${go.clampMax ?? 255}`;
                 div.appendChild(b);
+            }
+
+            if (type === 'nfc_module') {
+                div.classList.add('freq-badge');
+                div.setAttribute('data-freq', `CH:${go.nfcChannel}`);
             }
 
             if (type === 'lever' && go.leverToggled) {
@@ -3337,6 +3363,7 @@
             
             currentDisplays.forEach(d => d.incomingSignals = []);
             wirelessChannels = {};
+            for (let key in gridObjects) { if (gridObjects[key].type === 'nfc_module') gridObjects[key].nfcSignal = null; }
 
             function sendSignal(fromX, fromY, dx, dy, color, extraData = {}) {
                 let targetX = fromX + dx;
@@ -3542,7 +3569,7 @@
                     case 'color_converter': case 'latch_off_delay':
                     case 'gate_xnor': case 'balance_scale': case 'frequency_divider':
                     case 'hover_detector': case 'teleporter': case 'second_clock':
-                    case 'signal_clamp': case 'cuckoo_clock':
+                    case 'signal_clamp': case 'cuckoo_clock': case 'nfc_module':
                     case 'gate_not': case 'gate_and': case 'gate_xor': case 'gate_tri': case 'gate_t':
                         sendSignal(obj.x, obj.y, off.dx, off.dy, currentEmitColor, extraData); break;
                     case 'blocker':
@@ -3956,6 +3983,37 @@
                         nextActive = false;
                     }
                     signalColor = 'yellow';
+                } else if (obj.type === 'nfc_module') {
+                    const ch = obj.nfcChannel ?? 1;
+                    const offsets = [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}];
+                    if (hasInput) {
+                        let sig = signals[0];
+                        obj.nfcSignal = {
+                            color: sig.color, rgbChannel: sig.rgbChannel,
+                            channelValue: sig.channelValue, smokeData: sig.smokeData,
+                            dhtData: sig.dhtData, rainData: sig.rainData
+                        };
+                        nextActive = true;
+                        signalColor = sig.color;
+                        signalChanVal = sig.channelValue ?? 255;
+                        signalRgbChan = sig.rgbChannel || sig.color;
+                        smokeVal = sig.smokeData; dhtVal = sig.dhtData; rainVal = sig.rainData;
+                        for (const off2 of offsets) {
+                            const nk = `${obj.x + off2.dx},${obj.y + off2.dy}`;
+                            const neighbor = gridObjects[nk];
+                            if (neighbor && neighbor.type === 'nfc_module' && (neighbor.nfcChannel ?? 1) === ch && neighbor !== obj) {
+                                neighbor.nfcSignal = {...obj.nfcSignal};
+                            }
+                        }
+                    } else if (obj.nfcSignal) {
+                        nextActive = true;
+                        signalColor = obj.nfcSignal.color || 'red';
+                        signalChanVal = obj.nfcSignal.channelValue ?? 255;
+                        signalRgbChan = obj.nfcSignal.rgbChannel || signalColor;
+                        smokeVal = obj.nfcSignal.smokeData; dhtVal = obj.nfcSignal.dhtData; rainVal = obj.nfcSignal.rainData;
+                    } else {
+                        nextActive = false;
+                    }
                 } else if (obj.type === 'pulse_counter') {
                     const prevHasInputP = obj.prevHasInput || false;
                     if (hasInput && !prevHasInputP) {
