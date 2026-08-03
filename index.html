@@ -4331,7 +4331,11 @@
         const mpConnStatus = document.getElementById('mp-conn-status');
 
         if (localStorage.getItem('mp_server_url')) mpServerUrl.value = localStorage.getItem('mp_server_url');
-        else mpServerUrl.value = 'ws://' + location.hostname + ':3000';
+        else {
+            let proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            let port = (location.port && location.port !== '80' && location.port !== '443') ? ':' + location.port : '';
+            mpServerUrl.value = proto + '//' + location.hostname + port;
+        }
 
         function mpHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; } return h; }
 
