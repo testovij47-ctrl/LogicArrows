@@ -271,6 +271,7 @@
         }
 
         #mobile-controls { display: none; }
+        #mob-toggle { display: none; }
 
         @media (pointer: coarse), (max-width: 768px) {
             #hints { display: none !important; }
@@ -4297,12 +4298,14 @@
 
         // ==================== МУЛЬТИПЛЕЄР (localStorage) ====================
         const MP_KEY = 'logicArrowsMP';
-        let mpRole = null; // 'host' | 'guest' | null
+        let mpRole = null;
         let mpRoomCode = null;
         let mpMyId = Math.random().toString(36).slice(2,8);
         let mpMyName = 'Гравець ' + Math.floor(Math.random()*900+100);
         let mpSyncTimer = null;
         let mpLastStateHash = '';
+        let mpLastActionHash = '';
+        let mpIsApplyingState = false;
 
         const mpModal = document.getElementById('mp-modal');
         const mpPanel = document.getElementById('mp-panel');
@@ -4320,12 +4323,14 @@
             return c;
         }
 
-        function mpGetRooms() {
+        function mpRead() {
             try { return JSON.parse(localStorage.getItem(MP_KEY) || '{}'); } catch(e) { return {}; }
         }
-        function mpSetRooms(r) {
-            try { localStorage.setItem(MP_KEY, JSON.stringify(r)); } catch(e) {}
+        function mpWrite(data) {
+            try { localStorage.setItem(MP_KEY, JSON.stringify(data)); } catch(e) {}
         }
+        function mpStateKey(code) { return MP_KEY + ':' + code + ':state'; }
+        function mpActionsKey(code) { return MP_KEY + ':' + code + ':actions'; }
 
         function mpSerializeGrid() {
             let objects = [];
@@ -4363,6 +4368,7 @@
         }
 
         function mpDeserializeGrid(objects) {
+            mpIsApplyingState = true;
             pauseAutoSave();
             clearGrid();
             (objects || []).forEach(o => instantiateObject(o));
@@ -4371,13 +4377,13 @@
             doGameTick();
             drawLighting();
             resumeAutoSave();
+            mpIsApplyingState = false;
         }
 
         function mpHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = ((h << 5) - h + str.charCodeAt(i)) | 0; } return h; }
 
         function mpRenderPlayers() {
-            let rooms = mpGetRooms();
-            let room = rooms[mpRoomCode];
+            let room = mpRead()[mpRoomCode];
             if (!room) return;
             let html = '';
             room.players.forEach(p => {
@@ -4396,32 +4402,45 @@
 
         function mpKickPlayer(kickId) {
             if (mpRole !== 'host') return;
-            let rooms = mpGetRooms();
+            let rooms = mpRead();
             let room = rooms[mpRoomCode];
             if (!room) return;
             room.players = room.players.filter(p => p.id !== kickId);
             if (room.players.length === 0) { delete rooms[mpRoomCode]; }
-            mpSetRooms(rooms);
+            mpWrite(rooms);
+            try { localStorage.removeItem(mpActionsKey(mpRoomCode)); } catch(e) {}
             mpRenderPlayers();
         }
 
         function mpCloseRoom() {
             if (mpRole === 'host') {
-                let rooms = mpGetRooms();
+                let rooms = mpRead();
                 delete rooms[mpRoomCode];
-                mpSetRooms(rooms);
+                mpWrite(rooms);
+                try {
+                    localStorage.removeItem(mpStateKey(mpRoomCode));
+                    localStorage.removeItem(mpActionsKey(mpRoomCode));
+                } catch(e) {}
             } else if (mpRole === 'guest') {
-                let rooms = mpGetRooms();
+                let rooms = mpRead();
                 let room = rooms[mpRoomCode];
                 if (room) {
                     room.players = room.players.filter(p => p.id !== mpMyId);
-                    if (room.players.length === 0) delete rooms[mpRoomCode];
-                    mpSetRooms(rooms);
+                    if (room.players.length === 0) {
+                        delete rooms[mpRoomCode];
+                        try {
+                            localStorage.removeItem(mpStateKey(mpRoomCode));
+                            localStorage.removeItem(mpActionsKey(mpRoomCode));
+                        } catch(e) {}
+                    }
+                    mpWrite(rooms);
                 }
             }
             mpStopSync();
             mpRole = null;
             mpRoomCode = null;
+            mpLastStateHash = '';
+            mpLastActionHash = '';
             mpPanel.classList.remove('visible');
             mpModal.style.display = 'none';
         }
@@ -4433,61 +4452,88 @@
         function mpStartHostSync() {
             mpStopSync();
             mpSyncTimer = setInterval(() => {
-                let rooms = mpGetRooms();
+                if (!mpRoomCode) return;
+                let rooms = mpRead();
                 let room = rooms[mpRoomCode];
                 if (!room) { mpCloseRoom(); return; }
-                room.players.forEach(p => {
-                    if (p.id === mpMyId) return;
-                    if (p.action) {
-                        if (p.action.type === 'place' && !gridObjects[`${p.action.x},${p.action.y}`]) {
-                            instantiateObject({ ...p.action.data, x: p.action.x, y: p.action.y });
+
+                try {
+                    let raw = localStorage.getItem(mpActionsKey(mpRoomCode));
+                    let actions = raw ? JSON.parse(raw) : {};
+                    let processedIds = Object.keys(actions).filter(id => actions[id]);
+                    for (let gid of processedIds) {
+                        let act = actions[gid];
+                        if (act.type === 'place' && !gridObjects[`${act.x},${act.y}`]) {
+                            instantiateObject({ ...act.data, x: act.x, y: act.y });
                             recalculateMultiBlockDisplays();
                             drawLighting();
-                        } else if (p.action.type === 'remove') {
-                            let key = `${p.action.x},${p.action.y}`;
-                            if (gridObjects[key]) { gridObjects[key].element.remove(); delete gridObjects[key]; }
+                        } else if (act.type === 'remove') {
+                            let k = `${act.x},${act.y}`;
+                            if (gridObjects[k]) { gridObjects[k].element.remove(); delete gridObjects[k]; }
                             recalculateMultiBlockDisplays();
                             drawLighting();
                         }
-                        p.action = null;
                     }
-                });
+                    if (processedIds.length > 0) {
+                        let raw2 = localStorage.getItem(mpActionsKey(mpRoomCode));
+                        let actions2 = raw2 ? JSON.parse(raw2) : {};
+                        processedIds.forEach(id => { delete actions2[id]; });
+                        if (Object.keys(actions2).length === 0) {
+                            localStorage.removeItem(mpActionsKey(mpRoomCode));
+                        } else {
+                            localStorage.setItem(mpActionsKey(mpRoomCode), JSON.stringify(actions2));
+                        }
+                    }
+                } catch(e) {}
+
                 let state = mpSerializeGrid();
-                room.state = state;
-                room.hostId = mpMyId;
+                let stateStr = JSON.stringify(state);
+                let h = mpHash(stateStr);
+                if (h !== mpLastStateHash) {
+                    mpLastStateHash = h;
+                    try { localStorage.setItem(mpStateKey(mpRoomCode), stateStr); } catch(e) {}
+                }
+
                 room.updatedAt = Date.now();
-                mpSetRooms(rooms);
+                mpWrite(rooms);
                 mpRenderPlayers();
-            }, 300);
+            }, 200);
         }
 
         function mpStartGuestSync() {
             mpStopSync();
             mpSyncTimer = setInterval(() => {
-                let rooms = mpGetRooms();
+                if (!mpRoomCode) return;
+                let rooms = mpRead();
                 let room = rooms[mpRoomCode];
                 if (!room) { mpCloseRoom(); return; }
                 let me = room.players.find(p => p.id === mpMyId);
                 if (!me) { mpCloseRoom(); return; }
-                if (room.state) {
-                    let h = mpHash(JSON.stringify(room.state));
-                    if (h !== mpLastStateHash) {
-                        mpLastStateHash = h;
-                        mpDeserializeGrid(room.state);
+
+                try {
+                    let stateStr = localStorage.getItem(mpStateKey(mpRoomCode));
+                    if (stateStr) {
+                        let h = mpHash(stateStr);
+                        if (h !== mpLastStateHash) {
+                            mpLastStateHash = h;
+                            mpDeserializeGrid(JSON.parse(stateStr));
+                        }
                     }
-                }
+                } catch(e) {}
+
                 mpRenderPlayers();
-            }, 300);
+            }, 200);
         }
 
         function mpGuestAction(action) {
-            if (mpRole !== 'guest' || !mpRoomCode) return;
-            let rooms = mpGetRooms();
-            let room = rooms[mpRoomCode];
-            if (!room) return;
-            let me = room.players.find(p => p.id === mpMyId);
-            if (me) { me.action = action; }
-            mpSetRooms(rooms);
+            if (mpRole !== 'guest' || !mpRoomCode || mpIsApplyingState) return;
+            try {
+                let key = mpActionsKey(mpRoomCode);
+                let raw = localStorage.getItem(key);
+                let actions = raw ? JSON.parse(raw) : {};
+                actions[mpMyId] = action;
+                localStorage.setItem(key, JSON.stringify(actions));
+            } catch(e) {}
         }
 
         document.getElementById('mp-toggle').addEventListener('click', () => {
@@ -4497,35 +4543,40 @@
 
         document.getElementById('mp-create-btn').addEventListener('click', () => {
             let code = mpGenerateCode();
-            let rooms = mpGetRooms();
-            rooms[code] = { hostId: mpMyId, players: [{ id: mpMyId, name: mpMyName }], state: mpSerializeGrid(), updatedAt: Date.now() };
-            mpSetRooms(rooms);
+            let rooms = mpRead();
+            rooms[code] = { hostId: mpMyId, players: [{ id: mpMyId, name: mpMyName }], updatedAt: Date.now() };
+            mpWrite(rooms);
+            try { localStorage.setItem(mpStateKey(code), JSON.stringify(mpSerializeGrid())); } catch(e) {}
             mpRoomCode = code;
             mpRole = 'host';
             mpCodeDisplay.textContent = code;
             mpCreatedSection.style.display = 'block';
             mpStatusText.textContent = 'Очікування гравців...';
             mpPanel.classList.add('visible');
+            mpModal.style.display = 'none';
             mpStartHostSync();
         });
 
         document.getElementById('mp-copy-code').addEventListener('click', () => {
+            let btn = document.getElementById('mp-copy-code');
             navigator.clipboard.writeText(mpRoomCode).then(() => {
-                document.getElementById('mp-copy-code').textContent = '✅ Скопійовано!';
-                setTimeout(() => { document.getElementById('mp-copy-code').textContent = '📋 Копіювати код'; }, 1500);
-            }).catch(() => {});
+                btn.textContent = '✅ Скопійовано!';
+                setTimeout(() => { btn.textContent = '📋 Копіювати код'; }, 1500);
+            }).catch(() => {
+                btn.textContent = mpRoomCode;
+            });
         });
 
         document.getElementById('mp-join-btn').addEventListener('click', () => {
             let code = mpJoinCode.value.trim().toUpperCase();
             if (!code) { mpJoinStatus.textContent = 'Введіть код'; mpJoinStatus.style.color = '#e53935'; return; }
-            let rooms = mpGetRooms();
+            let rooms = mpRead();
             let room = rooms[code];
             if (!room) { mpJoinStatus.textContent = 'Кімнату не знайдено'; mpJoinStatus.style.color = '#e53935'; return; }
             if (room.players.length >= 8) { mpJoinStatus.textContent = 'Кімната заповнена'; mpJoinStatus.style.color = '#e53935'; return; }
             room.players.push({ id: mpMyId, name: mpMyName });
             room.updatedAt = Date.now();
-            mpSetRooms(rooms);
+            mpWrite(rooms);
             mpRoomCode = code;
             mpRole = 'guest';
             mpJoinStatus.textContent = 'Підключено! ✅';
@@ -4541,28 +4592,29 @@
         });
 
         window.addEventListener('storage', (e) => {
-            if (e.key !== MP_KEY || !mpRoomCode) return;
-            let rooms = mpGetRooms();
-            let room = rooms[mpRoomCode];
-            if (!room) { mpCloseRoom(); return; }
-            if (mpRole === 'guest' && room.state) {
-                let h = mpHash(JSON.stringify(room.state));
-                if (h !== mpLastStateHash) {
-                    mpLastStateHash = h;
-                    mpDeserializeGrid(room.state);
-                }
+            if (!mpRoomCode) return;
+            if (e.key === mpStateKey(mpRoomCode) && mpRole === 'guest') {
+                try {
+                    let stateStr = localStorage.getItem(mpStateKey(mpRoomCode));
+                    if (stateStr) {
+                        let h = mpHash(stateStr);
+                        if (h !== mpLastStateHash) {
+                            mpLastStateHash = h;
+                            mpDeserializeGrid(JSON.parse(stateStr));
+                        }
+                    }
+                } catch(ex) {}
+            }
+            if (e.key === MP_KEY) {
+                let rooms = mpRead();
+                let room = rooms[mpRoomCode];
+                if (!room) { mpCloseRoom(); return; }
             }
         });
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && mpRole === 'host' && mpRoomCode) {
-                let rooms = mpGetRooms();
-                let room = rooms[mpRoomCode];
-                if (room) {
-                    room.state = mpSerializeGrid();
-                    room.updatedAt = Date.now();
-                    mpSetRooms(rooms);
-                }
+                try { localStorage.setItem(mpStateKey(mpRoomCode), JSON.stringify(mpSerializeGrid())); } catch(e) {}
             }
         });
         // ==================== /МУЛЬТИПЛЕЄР ====================
