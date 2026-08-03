@@ -3,3 +3,5 @@ AGENTS.md
 node_modules/
 package-lock.json
 dist/
+package.json
+main.js
