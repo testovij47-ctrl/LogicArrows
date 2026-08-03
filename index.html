@@ -325,6 +325,53 @@
 
             #config-modal, #worlds-modal, #password-modal { width: 90vw !important; max-width: 300px; }
         }
+
+        .projector-beam {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.6;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+            border-radius: 50%;
+            animation: particleFloat 0.8s ease-out forwards;
+        }
+        @keyframes particleFloat {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0.2); }
+        }
+
+        .particle-smoke {
+            border-radius: 50%;
+            filter: blur(1px);
+            animation: smokeFloat 1.2s ease-out forwards;
+        }
+        @keyframes smokeFloat {
+            0% { opacity: 0.6; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(2); }
+        }
+
+        .particle-fire {
+            border-radius: 50% 50% 50% 0;
+            animation: fireFloat 0.6s ease-out forwards;
+        }
+        @keyframes fireFloat {
+            0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0.1) rotate(180deg); }
+        }
+
+        .particle-confetti {
+            border-radius: 2px;
+            animation: confettiFloat 1s ease-out forwards;
+        }
+        @keyframes confettiFloat {
+            0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: translate(var(--px), var(--py)) rotate(720deg) scale(0.3); }
+        }
     </style>
 </head>
 <body>
@@ -579,6 +626,8 @@
             </div>
             <div class="matrix-row">
                 <div class="matrix-cell"><div class="matrix-item" data-id="nfc_module"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#1a237e" stroke="#5c6bc0" stroke-width="1.5"/><path d="M8 8h8v2H8zM8 11h8v2H8zM8 14h8v2H8z" fill="#7986cb" opacity="0.6"/><path d="M12 4v16" stroke="#5c6bc0" stroke-width="0.8" stroke-dasharray="2 1.5"/><circle cx="12" cy="12" r="2" fill="#ffeb3b"/><path d="M10 12a2 2 0 0 1 4 0" fill="none" stroke="#ffeb3b" stroke-width="1"/><path d="M8 12a4 4 0 0 1 8 0" fill="none" stroke="#ffeb3b" stroke-width="0.8" opacity="0.6"/></svg></div><div class="block-title">NFC Модуль</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="projector"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="6" height="8" rx="1" fill="#455a64" stroke="#78909c" stroke-width="1"/><circle cx="11" cy="12" r="2" fill="#fff176" stroke="#f9a825" stroke-width="0.8"/><path d="M13 10h8l-2-3v6l2-3z" fill="#ff9800" opacity="0.7"/></svg></div><div class="block-title">Проектор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="particle_gen"><svg viewBox="0 0 24 24"><rect x="6" y="14" width="12" height="6" rx="1" fill="#37474f" stroke="#78909c" stroke-width="1"/><circle cx="9" cy="9" r="1.5" fill="#ff5722"/><circle cx="13" cy="6" r="1" fill="#ff9800"/><circle cx="15" cy="10" r="1.2" fill="#ffc107"/><circle cx="11" cy="4" r="0.8" fill="#ffeb3b"/><circle cx="7" cy="7" r="0.7" fill="#ff5722" opacity="0.6"/></svg></div><div class="block-title">Частинковий Генератор</div></div>
             </div>
         </div>
 
@@ -1457,6 +1506,58 @@
                     configModal.style.display = 'flex';
                     return;
                 }
+                if (clickedObj.type === 'projector') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = "Проектор";
+                    modalFields.innerHTML = `
+                        <div class="modal-row">
+                            <label>Колір променя:</label>
+                            <select id="cfg-proj-color">
+                                <option value="red" ${clickedObj.projectorColor === 'red' ? 'selected' : ''}>Червоний</option>
+                                <option value="green" ${clickedObj.projectorColor === 'green' ? 'selected' : ''}>Зелений</option>
+                                <option value="blue" ${clickedObj.projectorColor === 'blue' ? 'selected' : ''}>Синій</option>
+                                <option value="yellow" ${clickedObj.projectorColor === 'yellow' ? 'selected' : ''}>Жовтий</option>
+                                <option value="white" ${clickedObj.projectorColor === 'white' ? 'selected' : ''}>Білий</option>
+                            </select>
+                        </div>
+                        <div class="modal-row">
+                            <label>Довжина променя (1-10):</label>
+                            <input type="number" id="cfg-proj-len" min="1" max="10" value="${clickedObj.projectorLength ?? 5}">
+                        </div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Проектує кольоровий промінь у напрямку повороту; висвітлює клітинки вночі</div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'particle_gen') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = "Частинковий Генератор";
+                    modalFields.innerHTML = `
+                        <div class="modal-row">
+                            <label>Колір частинок:</label>
+                            <select id="cfg-particle-color">
+                                <option value="red" ${clickedObj.particleColor === 'red' ? 'selected' : ''}>Червоний</option>
+                                <option value="orange" ${clickedObj.particleColor === 'orange' ? 'selected' : ''}>Помаранчевий</option>
+                                <option value="yellow" ${clickedObj.particleColor === 'yellow' ? 'selected' : ''}>Жовтий</option>
+                                <option value="green" ${clickedObj.particleColor === 'green' ? 'selected' : ''}>Зелений</option>
+                                <option value="blue" ${clickedObj.particleColor === 'blue' ? 'selected' : ''}>Синій</option>
+                                <option value="white" ${clickedObj.particleColor === 'white' ? 'selected' : ''}>Білий</option>
+                            </select>
+                        </div>
+                        <div class="modal-row">
+                            <label>Тип частинок:</label>
+                            <select id="cfg-particle-type">
+                                <option value="spark" ${clickedObj.particleType === 'spark' ? 'selected' : ''}>Іскри</option>
+                                <option value="smoke" ${clickedObj.particleType === 'smoke' ? 'selected' : ''}>Дим</option>
+                                <option value="fire" ${clickedObj.particleType === 'fire' ? 'selected' : ''}>Вогонь</option>
+                                <option value="confetti" ${clickedObj.particleType === 'confetti' ? 'selected' : ''}>Конфетті</option>
+                            </select>
+                        </div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Створює візуальні частинки при активації; відправляє сигнал у всі 4 сторони</div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
                 if (clickedObj.type === 'web_display') {
                     let disp = currentDisplays.find(d => cellX >= d.x && cellX < d.x + d.w && cellY >= d.y && cellY < d.y + d.h);
                     if (disp) {
@@ -2020,6 +2121,16 @@
                 } else if (activeConfigTarget.type === 'nfc_module') {
                     activeConfigTarget.nfcChannel = Math.max(1, Math.min(99, parseInt(document.getElementById('cfg-nfc-channel').value) || 1));
                     activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.nfcChannel}`);
+                } else if (activeConfigTarget.type === 'projector') {
+                    activeConfigTarget.projectorColor = document.getElementById('cfg-proj-color').value || 'red';
+                    activeConfigTarget.projectorLength = Math.max(1, Math.min(10, parseInt(document.getElementById('cfg-proj-len').value) || 5));
+                    const pBadge = activeConfigTarget.element.querySelector('.projector-badge');
+                    if (pBadge) pBadge.innerText = `${activeConfigTarget.projectorLength}`;
+                } else if (activeConfigTarget.type === 'particle_gen') {
+                    activeConfigTarget.particleColor = document.getElementById('cfg-particle-color').value || 'red';
+                    activeConfigTarget.particleType = document.getElementById('cfg-particle-type').value || 'spark';
+                    const pgBadge = activeConfigTarget.element.querySelector('.particle-gen-badge');
+                    if (pgBadge) pgBadge.innerText = {spark:'⚡',smoke:'💨',fire:'🔥',confetti:'🎉'}[activeConfigTarget.particleType] || '⚡';
                 } else {
                     activeConfigTarget.frequency = parseInt(document.getElementById('cfg-freq').value) || 1;
                     activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.frequency}`);
@@ -2149,7 +2260,9 @@
                     routerMap: o.routerMap,
                     freqDivisor: o.freqDivisor,
                     clampMin: o.clampMin, clampMax: o.clampMax,
-                    nfcChannel: o.nfcChannel
+                    nfcChannel: o.nfcChannel,
+                    projectorColor: o.projectorColor, projectorLength: o.projectorLength,
+                    particleColor: o.particleColor, particleType: o.particleType
                 });
             }
             let displays = currentDisplays.map(d => ({
@@ -2245,7 +2358,10 @@
                 teleportHoldUntilTick: 0, teleportSignal: null,
                 clampMin: saved.clampMin ?? 0, clampMax: saved.clampMax ?? 255,
                 lastCuckooKey: '',
-                nfcChannel: saved.nfcChannel ?? 1
+                nfcChannel: saved.nfcChannel ?? 1,
+                projectorColor: saved.projectorColor || 'red', projectorLength: saved.projectorLength ?? 5,
+                particleColor: saved.particleColor || 'red', particleType: saved.particleType || 'spark',
+                particleElements: []
             };
 
             const go = gridObjects[key];
@@ -2348,6 +2464,20 @@
             if (type === 'nfc_module') {
                 div.classList.add('freq-badge');
                 div.setAttribute('data-freq', `CH:${go.nfcChannel}`);
+            }
+
+            if (type === 'projector') {
+                const b = document.createElement('div');
+                b.className = 'projector-badge';
+                b.innerText = `${go.projectorLength ?? 5}`;
+                div.appendChild(b);
+            }
+
+            if (type === 'particle_gen') {
+                const b = document.createElement('div');
+                b.className = 'particle-gen-badge';
+                b.innerText = {spark:'⚡',smoke:'💨',fire:'🔥',confetti:'🎉'}[go.particleType] || '⚡';
+                div.appendChild(b);
             }
 
             if (type === 'lever' && go.leverToggled) {
@@ -3540,8 +3670,34 @@
                         smokeData: chData.smokeData,
                         dhtData: chData.dhtData,
                         rainData: chData.rainData
-                    });
+            });
+
+            for (let key in gridObjects) {
+                let obj = gridObjects[key];
+                if (obj.type === 'projector' && obj.isActive) {
+                    let off = getOffset(obj.rotation);
+                    let pLen = obj.projectorLength ?? 5;
+                    let colorMap = { red: '#f44336', green: '#4caf50', blue: '#2196f3', yellow: '#ffeb3b', white: '#ffffff' };
+                    let beamColor = colorMap[obj.projectorColor] || '#f44336';
+                    let startX = (obj.x * CELL_SIZE) + camX + (CELL_SIZE / 2);
+                    let startY = (obj.y * CELL_SIZE) + camY + (CELL_SIZE / 2);
+                    let endX = startX + off.dx * pLen * CELL_SIZE;
+                    let endY = startY + off.dy * pLen * CELL_SIZE;
+                    ctxLight.save();
+                    ctxLight.globalCompositeOperation = 'destination-out';
+                    ctxLight.strokeStyle = beamColor;
+                    ctxLight.lineWidth = CELL_SIZE * 0.4;
+                    ctxLight.lineCap = 'round';
+                    ctxLight.shadowColor = beamColor;
+                    ctxLight.shadowBlur = CELL_SIZE * 1.5;
+                    ctxLight.beginPath();
+                    ctxLight.moveTo(startX, startY);
+                    ctxLight.lineTo(endX, endY);
+                    ctxLight.stroke();
+                    ctxLight.restore();
                 }
+            }
+        }
 
                 if (obj.type === 'rgb_selector') {
                     let emitColor = obj.rgbChannel || 'red';
@@ -3609,6 +3765,21 @@
                             sendSignal(obj.x, obj.y, no.dx, no.dy, currentEmitColor, extraData);
                         }
                     }
+                }
+
+                if (obj.type === 'projector') {
+                    const pLen = obj.projectorLength ?? 5;
+                    const pColor = obj.projectorColor || 'red';
+                    for (let i = 1; i <= pLen; i++) {
+                        sendSignal(obj.x, obj.y, off.dx * i, off.dy * i, pColor, extraData);
+                    }
+                }
+
+                if (obj.type === 'particle_gen') {
+                    sendSignal(obj.x, obj.y, 0, -1, currentEmitColor, extraData);
+                    sendSignal(obj.x, obj.y, 1, 0, currentEmitColor, extraData);
+                    sendSignal(obj.x, obj.y, 0, 1, currentEmitColor, extraData);
+                    sendSignal(obj.x, obj.y, -1, 0, currentEmitColor, extraData);
                 }
             }
 
@@ -4006,6 +4177,28 @@
                     } else {
                         nextActive = false;
                     }
+                } else if (obj.type === 'projector') {
+                    if (hasInput) {
+                        nextActive = true;
+                        let sig = signals[0];
+                        signalColor = obj.projectorColor || 'red';
+                        signalChanVal = sig.channelValue ?? 255;
+                        signalRgbChan = sig.rgbChannel || sig.color;
+                        smokeVal = sig.smokeData; dhtVal = sig.dhtData; rainVal = sig.rainData;
+                    } else {
+                        nextActive = false;
+                    }
+                } else if (obj.type === 'particle_gen') {
+                    if (hasInput) {
+                        nextActive = true;
+                        let sig = signals[0];
+                        signalColor = sig.color;
+                        signalChanVal = sig.channelValue ?? 255;
+                        signalRgbChan = sig.rgbChannel || sig.color;
+                        smokeVal = sig.smokeData; dhtVal = sig.dhtData; rainVal = sig.rainData;
+                    } else {
+                        nextActive = false;
+                    }
                 } else if (obj.type === 'pulse_counter') {
                     const prevHasInputP = obj.prevHasInput || false;
                     if (hasInput && !prevHasInputP) {
@@ -4320,6 +4513,28 @@
 
                 if (obj.type === 'piston' || obj.type === 'sticky_piston' || obj.type === 'custom_piston' || obj.type === 'custom_sticky_piston') {
                     processPiston(obj);
+                }
+
+                if (obj.type === 'particle_gen' && obj.isActive) {
+                    let colorMap = { red: '#f44336', orange: '#ff9800', yellow: '#ffeb3b', green: '#4caf50', blue: '#2196f3', white: '#ffffff' };
+                    let pColor = colorMap[obj.particleColor] || '#ff9800';
+                    let pType = obj.particleType || 'spark';
+                    for (let i = 0; i < 3; i++) {
+                        let p = document.createElement('div');
+                        p.className = `particle particle-${pType}`;
+                        let sz = 3 + Math.random() * 4;
+                        p.style.width = sz + 'px';
+                        p.style.height = sz + 'px';
+                        p.style.background = pColor;
+                        let ox = (Math.random() - 0.5) * CELL_SIZE * 1.5;
+                        let oy = -(Math.random() * CELL_SIZE * 2 + CELL_SIZE * 0.5);
+                        p.style.setProperty('--px', ox + 'px');
+                        p.style.setProperty('--py', oy + 'px');
+                        p.style.left = ((obj.x * CELL_SIZE) + camX + CELL_SIZE / 2 - sz / 2) + 'px';
+                        p.style.top = ((obj.y * CELL_SIZE) + camY + CELL_SIZE / 2 - sz / 2) + 'px';
+                        objectsLayer.appendChild(p);
+                        setTimeout(() => p.remove(), pType === 'smoke' ? 1200 : pType === 'fire' ? 600 : 1000);
+                    }
                 }
             }
 
