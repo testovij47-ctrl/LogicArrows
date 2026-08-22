@@ -66,7 +66,7 @@
         }
         .piston-arm svg { width: 70%; height: 70%; }
 
-        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge {
+        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge {
             position: absolute; top: 1px; right: 1px;
             font-size: 7px; font-weight: bold; color: #fff;
             background: rgba(0,0,0,0.7); padding: 0 2px; border-radius: 2px;
@@ -377,6 +377,43 @@
             0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
             100% { opacity: 0; transform: translate(var(--px), var(--py)) rotate(720deg) scale(0.3); }
         }
+
+        .rain-drop {
+            position: absolute; pointer-events: none; z-index: 6;
+            width: 2px; background: linear-gradient(transparent, rgba(100,181,246,0.7));
+            animation: rainFall linear forwards;
+        }
+        @keyframes rainFall {
+            0% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+
+        .lightning-spark {
+            position: absolute; pointer-events: none; z-index: 11;
+            width: 4px; height: 4px; border-radius: 50%;
+            background: #fff; box-shadow: 0 0 6px 2px #ffeb3b, 0 0 12px 4px #2196f3;
+            animation: sparkFlash 0.4s ease-out forwards;
+        }
+        @keyframes sparkFlash {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.8); }
+            100% { opacity: 0; transform: scale(0.2); }
+        }
+
+        .grid-object.burned-out svg {
+            filter: grayscale(1) brightness(0.4) !important;
+            opacity: 0.5 !important;
+        }
+        .grid-object.burned-out::after {
+            content: '⚡'; position: absolute; font-size: 10px; z-index: 12;
+            top: -2px; right: -2px; pointer-events: none;
+        }
+
+        #rain-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 5; overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -388,6 +425,7 @@
 
     <div id="top-ui">
         <button class="time-toggle-btn" id="time-toggle">☀️ Режим: ДЕНЬ (банан 🍌)</button>
+        <button class="time-toggle-btn" id="rain-toggle">🌧️ Дощ: ВИМК</button>
         <button class="time-toggle-btn" id="worlds-toggle">💾 Світи</button>
         <button class="time-toggle-btn" id="mp-toggle">🌐 Мультиплеєр</button>
     </div>
@@ -395,6 +433,7 @@
     <div id="scene-container">
         <div id="grid-canvas"></div>
         <canvas id="light-overlay"></canvas>
+        <div id="rain-overlay"></div>
         <div id="objects-layer"></div>
     </div>
 
@@ -641,6 +680,14 @@
                 <div class="matrix-cell"><div class="matrix-item" data-id="projector"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="6" height="8" rx="1" fill="#455a64" stroke="#78909c" stroke-width="1"/><circle cx="11" cy="12" r="2" fill="#fff176" stroke="#f9a825" stroke-width="0.8"/><path d="M13 10h8l-2-3v6l2-3z" fill="#ff9800" opacity="0.7"/></svg></div><div class="block-title">Проектор</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="particle_gen"><svg viewBox="0 0 24 24"><rect x="6" y="14" width="12" height="6" rx="1" fill="#37474f" stroke="#78909c" stroke-width="1"/><circle cx="9" cy="9" r="1.5" fill="#ff5722"/><circle cx="13" cy="6" r="1" fill="#ff9800"/><circle cx="15" cy="10" r="1.2" fill="#ffc107"/><circle cx="11" cy="4" r="0.8" fill="#ffeb3b"/><circle cx="7" cy="7" r="0.7" fill="#ff5722" opacity="0.6"/></svg></div><div class="block-title">Частинковий Генератор</div></div>
             </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="rain_shield"><svg viewBox="0 0 24 24"><path d="M12 2C7 2 3 6 3 10h2c0-3 3-6 7-6s7 3 7 6h2c0-4-4-8-9-8z" fill="#1565c0"/><rect x="2" y="10" width="20" height="3" rx="1.5" fill="#1565c0" stroke="#0d47a1" stroke-width="1"/><path d="M6 14v5M12 14v5M18 14v5" stroke="#42a5f5" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/><path d="M12 10l-6 0" stroke="#0d47a1" stroke-width="0.5" stroke-dasharray="2 1"/></svg></div><div class="block-title">Парасолька</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="delay_timer"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#1a237e" stroke="#5c6bc0" stroke-width="2"/><circle cx="12" cy="12" r="7" fill="none" stroke="#ffca28" stroke-width="1.5"/><path d="M12 7v5l3 2" stroke="#ffca28" stroke-width="1.5" fill="none" stroke-linecap="round"/><rect x="10" y="2" width="4" height="2" rx="1" fill="#5c6bc0"/></svg></div><div class="block-title">Таймер</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="torch"><svg viewBox="0 0 24 24"><rect x="8" y="10" width="8" height="10" rx="1" fill="#5d4037"/><path d="M12 2c-2 3-4 4-4 7a4 4 0 0 0 8 0c0-3-2-4-4-7z" fill="#ff6d00"/><path d="M12 5c-1 1.5-2 2-2 3.5a2 2 0 0 0 4 0c0-1.5-1-2-2-3.5z" fill="#ffca28"/></svg></div><div class="block-title">Факел</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="dynamite"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="12" rx="1" fill="#b71c1c" stroke="#e53935" stroke-width="1.5"/><rect x="6" y="6" width="12" height="3" rx="1" fill="#e53935"/><path d="M12 3l-1 3h2z" fill="#ff9800"/><circle cx="12" cy="2" r="1" fill="#ffeb3b"/></svg></div><div class="block-title">Динаміт</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="fog_gen"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="10" rx="5" fill="#546e7a" stroke="#78909c" stroke-width="1.5"/><path d="M6 8c1-3 3-4 6-4s5 1 6 4" fill="none" stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round"/><path d="M8 13c0.8 1.5 2.2 2.5 4 2.5s3.2-1 4-2.5" fill="none" stroke="#b0bec5" stroke-width="1" stroke-linecap="round"/></svg></div><div class="block-title">Туман-Генератор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="elevator"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="8" fill="#37474f"/><rect x="6" y="4" width="12" height="4" fill="#00bcd4" stroke="#006064" stroke-width="1"/><rect x="10" y="8" width="4" height="6" fill="#e0e0e0"/><path d="M12 2v2M10 2l2-1 2 1" stroke="#00bcd4" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M12 22v-2M10 22l2 1 2-1" stroke="#00bcd4" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="block-title">Підйомник</div></div>
+            </div>
         </div>
 
         <div id="hotbar-container">
@@ -683,6 +730,7 @@
         let mouseDownX = 0, mouseDownY = 0;
         let currentRotation = 0;
         let isNight = false;
+        let isRaining = false;
         let mapMotionDetected = false; 
         
         let activeSlot = slots[0]; 
@@ -880,6 +928,75 @@
         }
         timeToggleBtn.addEventListener('click', toggleTime);
 
+        const rainToggleBtn = document.getElementById('rain-toggle');
+        const rainOverlay = document.getElementById('rain-overlay');
+        const RAIN_SKIP_TYPES = ['wall', 'web_display', 'rain_shield'];
+        let rainDropTimer = null;
+
+        function isProtectedByRainShield(cellX, cellY) {
+            for (let sy = cellY - 1; sy >= -50; sy--) {
+                const sKey = `${cellX},${sy}`;
+                if (gridObjects[sKey] && gridObjects[sKey].type === 'rain_shield') return true;
+            }
+            return false;
+        }
+
+        function spawnRainDrop() {
+            if (!isRaining) return;
+            const drop = document.createElement('div');
+            drop.className = 'rain-drop';
+            const x = Math.random() * window.innerWidth;
+            const h = 20 + Math.random() * 40;
+            drop.style.left = x + 'px';
+            drop.style.top = '-50px';
+            drop.style.height = h + 'px';
+            drop.style.animationDuration = (0.4 + Math.random() * 0.3) + 's';
+            rainOverlay.appendChild(drop);
+            setTimeout(() => drop.remove(), 800);
+
+            const cellX = Math.floor((x - camX) / CELL_SIZE);
+            for (let cy = -2; cy <= Math.ceil(window.innerHeight / CELL_SIZE) + 2; cy++) {
+                const cellY = cy;
+                const key = `${cellX},${cellY}`;
+                const obj = gridObjects[key];
+                if (obj && !obj.burnedOut && !RAIN_SKIP_TYPES.includes(obj.type) && !isProtectedByRainShield(cellX, cellY)) {
+                    obj.burnedOut = true;
+                    obj.isActive = false;
+                    obj.element.classList.add('burned-out');
+                    for (let s = 0; s < 5; s++) {
+                        setTimeout(() => {
+                            const spark = document.createElement('div');
+                            spark.className = 'lightning-spark';
+                            const ox = (Math.random() - 0.5) * CELL_SIZE;
+                            const oy = (Math.random() - 0.5) * CELL_SIZE;
+                            spark.style.left = ((obj.x * CELL_SIZE) + camX + CELL_SIZE / 2 + ox) + 'px';
+                            spark.style.top = ((obj.y * CELL_SIZE) + camY + CELL_SIZE / 2 + oy) + 'px';
+                            objectsLayer.appendChild(spark);
+                            setTimeout(() => spark.remove(), 500);
+                        }, s * 60);
+                    }
+                    break;
+                }
+            }
+        }
+        function startRain() {
+            if (rainDropTimer) return;
+            rainDropTimer = setInterval(spawnRainDrop, 80);
+        }
+        function stopRain() {
+            clearInterval(rainDropTimer);
+            rainDropTimer = null;
+            rainOverlay.innerHTML = '';
+        }
+        function toggleRain() {
+            isRaining = !isRaining;
+            rainToggleBtn.innerText = isRaining ? "🌧️ Дощ: УВІМК" : "🌧️ Дощ: ВИМК";
+            rainToggleBtn.style.background = isRaining ? '#0d47a1' : '#1e375a';
+            rainToggleBtn.style.borderColor = isRaining ? '#2196f3' : '#3b66c4';
+            if (isRaining) startRain(); else stopRain();
+        }
+        rainToggleBtn.addEventListener('click', toggleRain);
+
         function hexToRgba(colorStr, alpha) {
             let canvasHelper = document.createElement('canvas');
             canvasHelper.width = canvasHelper.height = 1;
@@ -973,6 +1090,24 @@
             }
         }
 
+        let fogElements = [];
+        function drawFog() {
+            fogElements.forEach(el => el.remove());
+            fogElements = [];
+            for (let key in gridObjects) {
+                let obj = gridObjects[key];
+                if (obj.type === 'fog_gen') {
+                    let radius = (obj.fogRadius ?? 3) * CELL_SIZE;
+                    let cx = (obj.x * CELL_SIZE) + camX + CELL_SIZE / 2;
+                    let cy = (obj.y * CELL_SIZE) + camY + CELL_SIZE / 2;
+                    let fogEl = document.createElement('div');
+                    fogEl.style.cssText = `position:absolute;pointer-events:none;z-index:4;border-radius:50%;background:radial-gradient(circle,rgba(120,144,156,0.35) 0%,rgba(120,144,156,0.15) 50%,transparent 100%);left:${cx - radius}px;top:${cy - radius}px;width:${radius*2}px;height:${radius*2}px;`;
+                    objectsLayer.appendChild(fogEl);
+                    fogElements.push(fogEl);
+                }
+            }
+        }
+
         function updateObjectsPositions() {
             canvas.style.backgroundPosition = `${camX}px ${camY}px`;
             for (let key in gridObjects) {
@@ -986,6 +1121,16 @@
                     let frontY = obj.y + off.dy;
                     obj.armEl.style.left = `${(frontX * CELL_SIZE) + camX}px`;
                     obj.armEl.style.top = `${(frontY * CELL_SIZE) + camY}px`;
+                }
+                if (obj.elevatorArmEl) {
+                    if (obj.elevatorExtended) {
+                        let armY = obj.y - (obj.elevatorLength ?? 3);
+                        obj.elevatorArmEl.style.left = `${(obj.x * CELL_SIZE) + camX}px`;
+                        obj.elevatorArmEl.style.top = `${(armY * CELL_SIZE) + camY}px`;
+                        obj.elevatorArmEl.style.display = 'flex';
+                    } else {
+                        obj.elevatorArmEl.style.display = 'none';
+                    }
                 }
             }
             
@@ -1001,6 +1146,7 @@
             });
             
             drawLighting();
+            drawFog();
         }
 
         container.addEventListener('mousedown', (e) => {
@@ -1611,6 +1757,24 @@
                     }
                     return;
                 }
+                if (clickedObj.type === 'delay_timer') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Таймера';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Затримка (тіків):</label><input type="number" id="cfg-timer-delay" min="1" max="20" value="${clickedObj.timerDelay ?? 5}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'elevator') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Підйомника';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Довжина руки:</label><input type="number" id="cfg-elev-len" min="1" max="10" value="${clickedObj.elevatorLength ?? 3}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
                 if (clickedObj.type === 'button' || clickedObj.type === 'dir_button') {
                     clickedObj.manualTrigger = true; doGameTick();
                 }
@@ -2171,6 +2335,16 @@
                     activeConfigTarget.particleType = document.getElementById('cfg-particle-type').value || 'spark';
                     const pgBadge = activeConfigTarget.element.querySelector('.particle-gen-badge');
                     if (pgBadge) pgBadge.innerText = {spark:'⚡',smoke:'💨',fire:'🔥',confetti:'🎉'}[activeConfigTarget.particleType] || '⚡';
+                } else if (activeConfigTarget.type === 'delay_timer') {
+                    activeConfigTarget.timerDelay = Math.max(1, Math.min(20, parseInt(document.getElementById('cfg-timer-delay').value) || 5));
+                    activeConfigTarget.timerRemaining = 0;
+                    activeConfigTarget.timerActive = false;
+                    const tdBadge = activeConfigTarget.element.querySelector('.timer-badge');
+                    if (tdBadge) tdBadge.innerText = `${activeConfigTarget.timerDelay}T`;
+                } else if (activeConfigTarget.type === 'elevator') {
+                    activeConfigTarget.elevatorLength = Math.max(1, Math.min(10, parseInt(document.getElementById('cfg-elev-len').value) || 3));
+                    const elBadge = activeConfigTarget.element.querySelector('.elevator-badge');
+                    if (elBadge) elBadge.innerText = `${activeConfigTarget.elevatorLength}`;
                 } else {
                     activeConfigTarget.frequency = parseInt(document.getElementById('cfg-freq').value) || 1;
                     activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.frequency}`);
@@ -2302,7 +2476,10 @@
                     clampMin: o.clampMin, clampMax: o.clampMax,
                     nfcChannel: o.nfcChannel,
                     projectorColor: o.projectorColor, projectorLength: o.projectorLength,
-                    particleColor: o.particleColor, particleType: o.particleType
+                    particleColor: o.particleColor, particleType: o.particleType,
+                    burnedOut: o.burnedOut || false,
+                    timerDelay: o.timerDelay,
+                    elevatorLength: o.elevatorLength
                 });
             }
             let displays = currentDisplays.map(d => ({
@@ -2402,10 +2579,17 @@
                 projectorColor: saved.projectorColor || 'red', projectorLength: saved.projectorLength ?? 5,
                 particleColor: saved.particleColor || 'red', particleType: saved.particleType || 'spark',
                 particleElements: [],
-                lastObservedBlockType: '__empty__'
+                lastObservedBlockType: '__empty__',
+                burnedOut: saved.burnedOut || false,
+                timerDelay: saved.timerDelay ?? 5, timerRemaining: 0, timerActive: false,
+                dynamiteTimer: 0, dynamiteActive: false,
+                fogRadius: 3, fogActive: false,
+                elevatorLength: saved.elevatorLength ?? 3, elevatorExtended: false, elevatorArmEl: null
             };
 
             const go = gridObjects[key];
+
+            if (go.burnedOut) { div.classList.add('burned-out'); }
 
             if (type === 'repeater') { const b = document.createElement('div'); b.className = 'repeater-delay-badge'; b.innerText = `${go.repeaterDelay}T`; div.appendChild(b); }
             if (type === 'battery') { const b = document.createElement('div'); b.className = 'battery-level-badge'; b.innerText = `${go.batteryCharge}%`; div.appendChild(b); }
@@ -2519,6 +2703,39 @@
                 b.className = 'particle-gen-badge';
                 b.innerText = {spark:'⚡',smoke:'💨',fire:'🔥',confetti:'🎉'}[go.particleType] || '⚡';
                 div.appendChild(b);
+            }
+
+            if (type === 'delay_timer') {
+                const b = document.createElement('div');
+                b.className = 'timer-badge';
+                b.innerText = `${go.timerDelay ?? 5}T`;
+                div.appendChild(b);
+            }
+
+            if (type === 'dynamite') {
+                const b = document.createElement('div');
+                b.className = 'dynamite-badge';
+                b.innerText = '💣';
+                div.appendChild(b);
+            }
+
+            if (type === 'fog_gen') {
+                const b = document.createElement('div');
+                b.className = 'fog-badge';
+                b.innerText = '🌫️';
+                div.appendChild(b);
+            }
+
+            if (type === 'elevator') {
+                const b = document.createElement('div');
+                b.className = 'elevator-badge';
+                b.innerText = `${go.elevatorLength ?? 3}`;
+                div.appendChild(b);
+                const arm = document.createElement('div');
+                arm.className = 'piston-arm';
+                arm.innerHTML = `<rect x="2" y="2" width="20" height="20" rx="2" fill="#00bcd4" stroke="#006064" stroke-width="1.5"/><path d="M12 5v14M8 9l4-4 4 4M8 15l4 4 4-4" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+                objectsLayer.appendChild(arm);
+                go.elevatorArmEl = arm;
             }
 
             if (type === 'lever' && go.leverToggled) {
@@ -2941,8 +3158,25 @@
                                         for (let w = 0; w < disp.w; w++) {
                                             let dk = `${disp.x + w},${disp.y + h}`;
                                             if (gridObjects[dk]) { gridObjects[dk].element.remove(); delete gridObjects[dk]; }
-                                        }
-                                    }
+                }
+            }
+
+            for (let key in gridObjects) {
+                let obj = gridObjects[key];
+                if (obj.type === 'elevator' && obj.isActive && obj.elevatorExtended) {
+                    let elevLen = obj.elevatorLength ?? 3;
+                    for (let dy = 1; dy <= elevLen; dy++) {
+                        let belowKey = `${obj.x},${obj.y + dy}`;
+                        if (gridObjects[belowKey] && gridObjects[belowKey].type !== 'wall' && gridObjects[belowKey].type !== 'web_display') {
+                            let targetY = obj.y + dy - elevLen;
+                            let targetKey2 = `${obj.x},${targetY}`;
+                            if (!gridObjects[targetKey2]) {
+                                moveObject(belowKey, obj.x, targetY);
+                            }
+                        }
+                    }
+                }
+            }
                                 } else { gridObjects[key].element.remove(); delete gridObjects[key]; }
                             } else { gridObjects[key].element.remove(); delete gridObjects[key]; }
                             recalculateMultiBlockDisplays();
@@ -3540,10 +3774,23 @@
             currentDisplays.forEach(d => d.incomingSignals = []);
             wirelessChannels = {};
 
+            function isInFog(tx, ty) {
+                for (let fk in gridObjects) {
+                    let fo = gridObjects[fk];
+                    if (fo.type === 'fog_gen') {
+                        let dist = Math.abs(fo.x - tx) + Math.abs(fo.y - ty);
+                        if (dist <= (fo.fogRadius ?? 3)) return true;
+                    }
+                }
+                return false;
+            }
+
             function sendSignal(fromX, fromY, dx, dy, color, extraData = {}) {
                 let targetX = fromX + dx;
                 let targetY = fromY + dy;
                 let targetKey = `${targetX},${targetY}`;
+                
+                if (isInFog(fromX, fromY) && gridObjects[targetKey] && gridObjects[targetKey].type !== 'fog_gen') return;
                 
                 if (gridObjects[targetKey]) {
                     let target = gridObjects[targetKey];
@@ -3558,9 +3805,14 @@
             }
 
             for (let key in gridObjects) {
-                let obj = gridObjects[key]; if (obj.isBlocked) continue;
+                let obj = gridObjects[key]; if (obj.isBlocked || obj.burnedOut) continue;
                 
                 if (obj.type === 'source' || (obj.type === 'lever' && obj.leverToggled)) {
+                    sendSignal(obj.x, obj.y, 0, -1, 'red'); sendSignal(obj.x, obj.y, 1, 0, 'red');
+                    sendSignal(obj.x, obj.y, 0, 1, 'red'); sendSignal(obj.x, obj.y, -1, 0, 'red');
+                }
+
+                if (obj.type === 'torch') {
                     sendSignal(obj.x, obj.y, 0, -1, 'red'); sendSignal(obj.x, obj.y, 1, 0, 'red');
                     sendSignal(obj.x, obj.y, 0, 1, 'red'); sendSignal(obj.x, obj.y, -1, 0, 'red');
                 }
@@ -3661,7 +3913,7 @@
             }
 
             for (let key in gridObjects) {
-                let obj = gridObjects[key]; if (!obj.isActive || obj.isBlocked || obj.type === 'web_display' || obj.type === 'magnet' || obj.type === 'controlled_magnet' || obj.type === 'servo' || obj.type === 'seven_segment' || obj.type === 'buzzer' || obj.type === 'siren' || obj.type === 'birthday_chip' || obj.type === 'windmill' || obj.type === 'analog_clock' || obj.type === 'bar_gauge' || obj.type === 'stopwatch' || obj.type === 'compass' || obj.type === 'rotator_mechanism' || obj.type === 'observer') continue;
+                let obj = gridObjects[key]; if (!obj.isActive || obj.isBlocked || obj.burnedOut || obj.type === 'web_display' || obj.type === 'magnet' || obj.type === 'controlled_magnet' || obj.type === 'servo' || obj.type === 'seven_segment' || obj.type === 'buzzer' || obj.type === 'siren' || obj.type === 'birthday_chip' || obj.type === 'windmill' || obj.type === 'analog_clock' || obj.type === 'bar_gauge' || obj.type === 'stopwatch' || obj.type === 'compass' || obj.type === 'rotator_mechanism' || obj.type === 'observer') continue;
                 let off = getOffset(obj.rotation);
                 let currentEmitColor = obj.lastSignalColor || 'red';
 
@@ -3825,7 +4077,7 @@
                 fastArrowGuard++;
                 for (let key in gridObjects) {
                     let obj = gridObjects[key];
-                    if (obj.type !== 'fast_arrow' || obj.isBlocked || fastArrowForwarded.has(key)) continue;
+                    if (obj.type !== 'fast_arrow' || obj.isBlocked || obj.burnedOut || fastArrowForwarded.has(key)) continue;
                     let sigs = incoming[key] || [];
                     if (sigs.length > 0) {
                         let off = getOffset(obj.rotation);
@@ -3903,7 +4155,7 @@
             }
 
             for (let key in gridObjects) {
-                let obj = gridObjects[key]; if (obj.type === 'source' || obj.type === 'wall' || obj.type === 'web_display' || obj.type === 'magnet') continue;
+                let obj = gridObjects[key]; if (obj.type === 'source' || obj.type === 'wall' || obj.type === 'web_display' || obj.type === 'magnet' || obj.burnedOut) continue;
                 let signals = incoming[key] || [];
                 let hasInput = signals.length > 0;
                 
@@ -4531,6 +4783,79 @@
                 } else if (obj.type === 'observer') {
                     nextActive = false;
                     signalColor = 'yellow';
+                } else if (obj.type === 'delay_timer') {
+                    if (hasInput && !obj.timerActive) {
+                        obj.timerActive = true;
+                        obj.timerRemaining = obj.timerDelay ?? 5;
+                    }
+                    if (obj.timerActive) {
+                        obj.timerRemaining--;
+                        if (obj.timerRemaining <= 0) {
+                            nextActive = true;
+                            obj.timerActive = false;
+                            signalColor = 'yellow';
+                        }
+                    }
+                } else if (obj.type === 'dynamite') {
+                    if (hasInput && !obj.dynamiteActive) {
+                        obj.dynamiteActive = true;
+                        obj.dynamiteTimer = 3;
+                        obj.element.classList.add('active-red');
+                    }
+                    if (obj.dynamiteActive) {
+                        obj.dynamiteTimer--;
+                        if (obj.dynamiteTimer <= 0) {
+                            let dx = [0,1,0,-1, 1,1,-1,-1, 0,2,0,-2, 2,2,-2,-2, 0,0,1,-1];
+                            let dy = [-1,0,1,0, -1,1,1,-1, -2,0,2,0, -1,1,1,-1, 0,0,-2,2];
+                            for (let i = 0; i < dx.length; i++) {
+                                let tx = obj.x + dx[i], ty = obj.y + dy[i];
+                                let tk = `${tx},${ty}`;
+                                if (gridObjects[tk] && gridObjects[tk].type !== 'wall') {
+                                    gridObjects[tk].element.remove();
+                                    delete gridObjects[tk];
+                                }
+                            }
+                            let spark = document.createElement('div');
+                            spark.className = 'lightning-spark';
+                            spark.style.width = '30px'; spark.style.height = '30px';
+                            spark.style.left = ((obj.x * CELL_SIZE) + camX + CELL_SIZE/2 - 15) + 'px';
+                            spark.style.top = ((obj.y * CELL_SIZE) + camY + CELL_SIZE/2 - 15) + 'px';
+                            spark.style.background = '#ff6d00';
+                            spark.style.boxShadow = '0 0 20px 8px #ff6d00, 0 0 40px 16px #ffeb3b';
+                            spark.style.animation = 'sparkFlash 0.8s ease-out forwards';
+                            objectsLayer.appendChild(spark);
+                            setTimeout(() => spark.remove(), 900);
+                            delete gridObjects[`${obj.x},${obj.y}`];
+                            obj.element.remove();
+                        } else {
+                            obj.element.style.filter = `brightness(${1 + (3 - obj.dynamiteTimer) * 0.5}) hue-rotate(${obj.dynamiteTimer * 20}deg)`;
+                        }
+                    }
+                    nextActive = false;
+                } else if (obj.type === 'fog_gen') {
+                    nextActive = true;
+                    obj.fogActive = true;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'elevator') {
+                    if (hasInput && !obj.elevatorExtended) {
+                        obj.elevatorExtended = true;
+                        obj.isActive = true;
+                    } else if (!hasInput && obj.elevatorExtended) {
+                        obj.elevatorExtended = false;
+                        obj.isActive = false;
+                    }
+                    nextActive = obj.isActive;
+                    signalColor = 'yellow';
+                    if (obj.elevatorArmEl) {
+                        if (obj.elevatorExtended) {
+                            let armY = obj.y - (obj.elevatorLength ?? 3);
+                            obj.elevatorArmEl.style.left = `${(obj.x * CELL_SIZE) + camX}px`;
+                            obj.elevatorArmEl.style.top = `${(armY * CELL_SIZE) + camY}px`;
+                            obj.elevatorArmEl.style.display = 'flex';
+                        } else {
+                            obj.elevatorArmEl.style.display = 'none';
+                        }
+                    }
                 } else {
                     nextActive = hasInput;
                 }
@@ -4589,6 +4914,7 @@
 
             mapMotionDetected = false;
             drawLighting();
+            drawFog();
         }
 
         (function autoLoadLastWorld() {
@@ -4672,7 +4998,8 @@
                     latchSeconds:o.latchSeconds,
                     routerMap:o.routerMap,
                     freqDivisor:o.freqDivisor,
-                    clampMin:o.clampMin, clampMax:o.clampMax
+                    clampMin:o.clampMin, clampMax:o.clampMax,
+                    burnedOut:o.burnedOut || false
                 });
             }
             return objects;
