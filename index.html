@@ -66,6 +66,11 @@
         }
         .piston-arm svg { width: 70%; height: 70%; }
 
+        .glass-block-visual { opacity: 0.6 !important; }
+        .trans-display-visual { opacity: 0.7 !important; }
+        .energy-shield-cell svg { filter: drop-shadow(0 0 4px #4fc3f7); }
+        @keyframes conveyor-anim { 0%{background-position:0 0} 100%{background-position:20px 0} }
+
         .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge, .encryptor-badge, .decoder-badge, .freq-comp-badge, .mux-badge, .demux-badge, .ram-badge, .led-badge, .proj-beam-badge, .signal-delay-badge, .timer-switch-badge, .prox-badge, .seismo-badge, .sync-badge, .mag-winch-badge, .freq-filter-badge, .conveyor-badge {
             position: absolute; top: 1px; right: 1px;
             font-size: 7px; font-weight: bold; color: #fff;
@@ -1927,6 +1932,24 @@
                     configModal.style.display = 'flex';
                     return;
                 }
+                if (clickedObj.type === 'synchronizer') {
+                    clickedObj._configTarget = clickedObj;
+                    modalFields.innerHTML = `
+                        <label>Група синхронізації: <input type="number" id="modal-sync-group" min="0" max="99" value="${clickedObj.syncGroup ?? 0}"></label>
+                    `;
+                    modalTitle.innerText = 'Налаштування Синхронізатора';
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'proximity_sensor') {
+                    clickedObj._configTarget = clickedObj;
+                    modalFields.innerHTML = `
+                        <label>Діапазон виявлення: <input type="number" id="modal-prox-range" min="1" max="10" value="${clickedObj.proximityRange ?? 2}"></label>
+                    `;
+                    modalTitle.innerText = 'Налаштування Датчика Близькості';
+                    configModal.style.display = 'flex';
+                    return;
+                }
                 if (clickedObj.type === 'button' || clickedObj.type === 'dir_button') {
                     clickedObj.manualTrigger = true; doGameTick();
                 }
@@ -2509,6 +2532,14 @@
                     activeConfigTarget.targetFrequency = Math.max(1, Math.min(10, parseInt(document.getElementById('cfg-fc-freq').value) || 3));
                 } else if (activeConfigTarget.type === 'projector_beam') {
                     activeConfigTarget.beamLength = Math.max(1, Math.min(15, parseInt(document.getElementById('cfg-pb-len').value) || 8));
+                } else if (activeConfigTarget.type === 'synchronizer') {
+                    activeConfigTarget.syncGroup = parseInt(document.getElementById('modal-sync-group')?.value) || 0;
+                    let badge = activeConfigTarget.element.querySelector('.sync-badge');
+                    if (badge) badge.textContent = 'G:' + activeConfigTarget.syncGroup;
+                } else if (activeConfigTarget.type === 'proximity_sensor') {
+                    activeConfigTarget.proximityRange = parseInt(document.getElementById('modal-prox-range')?.value) || 2;
+                    let badge = activeConfigTarget.element.querySelector('.prox-badge');
+                    if (badge) badge.textContent = 'R:' + activeConfigTarget.proximityRange;
                 } else {
                     activeConfigTarget.frequency = parseInt(document.getElementById('cfg-freq').value) || 1;
                     activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.frequency}`);
@@ -2651,7 +2682,8 @@
                     beamLength: o.beamLength,
                     proximityRange: o.proximityRange,
                     syncGroup: o.syncGroup,
-                    ramValue: o.ramValue
+                    ramValue: o.ramValue,
+                    ledStates: o.ledStates
                 });
             }
             let displays = currentDisplays.map(d => ({
@@ -2941,6 +2973,11 @@
             if (type === 'signal_filter') { const b = document.createElement('div'); b.className = 'freq-filter-badge'; b.innerText = 'F'; div.appendChild(b); }
             if (type === 'conveyor') { const b = document.createElement('div'); b.className = 'conveyor-badge'; b.innerText = '→'; div.appendChild(b); }
             if (type === 'signal_ram') { const b = document.createElement('div'); b.className = 'ram-badge'; b.innerText = `${go.ramValue}`; div.appendChild(b); }
+            if (type === 'ram') { const b = document.createElement('div'); b.className = 'ram-badge'; b.innerText = `${go.ramValue}`; div.appendChild(b); }
+            if (type === 'multiplexer') { const b = document.createElement('div'); b.className = 'mux-badge signal-badge'; div.appendChild(b); }
+            if (type === 'demultiplexer') { const b = document.createElement('div'); b.className = 'demux-badge signal-badge'; div.appendChild(b); }
+            if (type === 'glass_block') go.element.classList.add('glass-block-visual');
+            if (type === 'trans_display') go.element.classList.add('trans-display-visual');
 
             if (type === 'lever' && go.leverToggled) {
                 svg.innerHTML = `<rect x="5" y="16" width="14" height="6" rx="1" fill="#757575"/><line x1="12" y1="16" x2="16" y2="6" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="6" r="3" fill="#4caf50"/>`;
@@ -5275,6 +5312,42 @@
                 } else if (obj.type === 'signal_filter') {
                     nextActive = hasInput;
                     signalColor = 'yellow';
+                } else if (obj.type === 'timed_switch') {
+                    nextActive = obj.switchState;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'ir_transmitter') {
+                    nextActive = hasInput;
+                    signalColor = 'green';
+                } else if (obj.type === 'repeater_block') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'antenna') {
+                    nextActive = hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'signal_delay') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'conveyor') {
+                    nextActive = hasInput;
+                    signalColor = 'green';
+                } else if (obj.type === 'projector_beam') {
+                    nextActive = hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'winch') {
+                    nextActive = hasInput;
+                    signalColor = 'red';
+                } else if (obj.type === 'mag_winch') {
+                    nextActive = hasInput;
+                    signalColor = 'red';
+                } else if (obj.type === 'lift_bridge') {
+                    if (hasInput && !obj.bridgeExtended) {
+                        obj.bridgeExtended = true;
+                    }
+                    nextActive = hasInput;
+                    signalColor = 'blue';
+                } else if (obj.type === 'energy_shield') {
+                    nextActive = hasInput;
+                    signalColor = 'cyan';
                 } else if (obj.type === 'elevator') {
                     if (hasInput && !obj.elevatorExtended) {
                         obj.elevatorExtended = true;
