@@ -66,7 +66,7 @@
         }
         .piston-arm svg { width: 70%; height: 70%; }
 
-        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge {
+        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge, .encryptor-badge, .decoder-badge, .freq-comp-badge, .mux-badge, .demux-badge, .ram-badge, .led-badge, .proj-beam-badge, .signal-delay-badge, .timer-switch-badge, .prox-badge, .seismo-badge, .sync-badge, .mag-winch-badge, .freq-filter-badge, .conveyor-badge {
             position: absolute; top: 1px; right: 1px;
             font-size: 7px; font-weight: bold; color: #fff;
             background: rgba(0,0,0,0.7); padding: 0 2px; border-radius: 2px;
@@ -688,6 +688,46 @@
                 <div class="matrix-cell"><div class="matrix-item" data-id="fog_gen"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="10" rx="5" fill="#546e7a" stroke="#78909c" stroke-width="1.5"/><path d="M6 8c1-3 3-4 6-4s5 1 6 4" fill="none" stroke="#90a4ae" stroke-width="1.5" stroke-linecap="round"/><path d="M8 13c0.8 1.5 2.2 2.5 4 2.5s3.2-1 4-2.5" fill="none" stroke="#b0bec5" stroke-width="1" stroke-linecap="round"/></svg></div><div class="block-title">Туман-Генератор</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="elevator"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="8" fill="#37474f"/><rect x="6" y="4" width="12" height="4" fill="#00bcd4" stroke="#006064" stroke-width="1"/><rect x="10" y="8" width="4" height="6" fill="#e0e0e0"/><path d="M12 2v2M10 2l2-1 2 1" stroke="#00bcd4" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M12 22v-2M10 22l2 1 2-1" stroke="#00bcd4" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="block-title">Підйомник</div></div>
             </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="encryptor"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#1a237e" stroke="#5c6bc0" stroke-width="2"/><rect x="7" y="9" width="10" height="6" rx="1" fill="#283593" stroke="#7986cb" stroke-width="1"/><circle cx="12" cy="12" r="2" fill="#ffca28"/><text x="12" y="17" text-anchor="middle" font-size="4" fill="#90caf9" font-family="monospace">ENC</text></svg></div><div class="block-title">Шифратор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="decoder"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#1b5e20" stroke="#66bb6a" stroke-width="2"/><rect x="7" y="9" width="10" height="6" rx="1" fill="#2e7d32" stroke="#81c784" stroke-width="1"/><circle cx="12" cy="12" r="2" fill="#ffca28"/><text x="12" y="17" text-anchor="middle" font-size="4" fill="#a5d6a7" font-family="monospace">DEC</text></svg></div><div class="block-title">Декодер</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="freq_comparator"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="5" fill="none" stroke="#ff9800" stroke-width="2"/><circle cx="16" cy="12" r="5" fill="none" stroke="#ff9800" stroke-width="2"/><path d="M11 10l2 2-2 2" stroke="#ffca28" stroke-width="1.5" fill="none"/><text x="12" y="13" text-anchor="middle" font-size="5" fill="#ffca28" font-family="monospace">=</text></svg></div><div class="block-title">Порівн. Частоти</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="multiplexer"><svg viewBox="0 0 24 24"><path d="M3 5l8 7-8 7" stroke="#2196f3" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M3 12h12l6 0" stroke="#2196f3" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="21" cy="12" r="2" fill="#2196f3"/><path d="M7 5l6 7-6 7" stroke="#64b5f6" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 12l14 0" stroke="#64b5f6" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M7 19l6-7" stroke="#64b5f6" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="block-title">Мультиплексор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="demultiplexer"><svg viewBox="0 0 24 24"><circle cx="3" cy="12" r="2" fill="#e91e63"/><path d="M5 12h12" stroke="#e91e63" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 12l6-7" stroke="#e91e63" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 12h6" stroke="#e91e63" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 12l6 7" stroke="#e91e63" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 12l6-3" stroke="#f48fb1" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M17 12l6 3" stroke="#f48fb1" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="block-title">Демультиплексор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="signal_ram"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" fill="#37474f" stroke="#78909c" stroke-width="1.5"/><rect x="5" y="5" width="6" height="4" rx="1" fill="#263238" stroke="#546e7a" stroke-width="0.8"/><rect x="13" y="5" width="6" height="4" rx="1" fill="#263238" stroke="#546e7a" stroke-width="0.8"/><rect x="5" y="11" width="6" height="4" rx="1" fill="#263238" stroke="#546e7a" stroke-width="0.8"/><rect x="13" y="11" width="6" height="4" rx="1" fill="#263238" stroke="#546e7a" stroke-width="0.8"/><circle cx="8" cy="7" r="1" fill="#4caf50"/><circle cx="16" cy="7" r="1" fill="#f44336"/><circle cx="8" cy="13" r="1" fill="#2196f3"/><circle cx="16" cy="13" r="1" fill="#ffca28"/></svg></div><div class="block-title">RAM Модуль</div></div>
+            </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="ram"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#455a64" stroke="#78909c" stroke-width="2"/><path d="M8 12h8" stroke="#b0bec5" stroke-width="2" stroke-linecap="round"/><path d="M14 9l4 3-4 3" fill="none" stroke="#b0bec5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="6" width="3" height="12" rx="1" fill="#546e7a"/></svg></div><div class="block-title">Таран</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="winch"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5" fill="#455a64" stroke="#78909c" stroke-width="2"/><circle cx="12" cy="8" r="2" fill="#37474f"/><path d="M10 13v2M14 13v2M10 17v2M14 17v2M9 15h6M9 19h6" stroke="#90a4ae" stroke-width="1.2" stroke-linecap="round"/><rect x="8" y="21" width="8" height="2" rx="1" fill="#78909c"/></svg></div><div class="block-title">Лебідка</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="lift_bridge"><svg viewBox="0 0 24 24"><rect x="2" y="14" width="8" height="6" fill="#5d4037" stroke="#795548" stroke-width="1"/><rect x="14" y="14" width="8" height="6" fill="#5d4037" stroke="#795548" stroke-width="1"/><rect x="10" y="12" width="4" height="2" fill="#90a4ae" stroke="#78909c" stroke-width="0.8"/><path d="M12 2v10" stroke="#42a5f5" stroke-width="1.5" stroke-dasharray="2 1"/><path d="M10 4l2-2 2 2" stroke="#42a5f5" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M10 8l2 2 2-2" stroke="#42a5f5" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div><div class="block-title">Підйомний міст</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="conveyor"><svg viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="1" fill="#37474f" stroke="#546e7a" stroke-width="1.5"/><circle cx="6" cy="16" r="2" fill="#263238" stroke="#546e7a" stroke-width="1"/><circle cx="18" cy="16" r="2" fill="#263238" stroke="#546e7a" stroke-width="1"/><path d="M6 10l4 0M14 10l4 0" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round"/><path d="M17 9l3 1.5-3 1.5" fill="none" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="block-title">Конвеєр</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="mag_winch"><svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="6" rx="2" fill="#b71c1c" stroke="#e53935" stroke-width="1.5"/><rect x="4" y="3" width="4" height="6" rx="1" fill="#e53935"/><rect x="16" y="3" width="4" height="6" rx="1" fill="#e53935"/><path d="M10 9v2M14 9v2M10 13v2M14 13v2" stroke="#90a4ae" stroke-width="1" stroke-linecap="round"/><rect x="7" y="17" width="10" height="4" rx="1" fill="#9e9e9e" stroke="#757575" stroke-width="1"/><path d="M9 17v4M15 17v4" stroke="#f44336" stroke-width="1.5"/></svg></div><div class="block-title">Магнітна Лебідка</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="signal_filter"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#1a237e" stroke="#3f51b5" stroke-width="1.5"/><path d="M5 12c1-3 2-5 3.5-5s2.5 5 3.5 5 2.5-5 3.5-5 2.5 5 3.5 5" stroke="#4fc3f7" stroke-width="1.5" fill="none"/><line x1="5" y1="12" x2="19" y2="12" stroke="#ffca28" stroke-width="1" stroke-dasharray="3 2"/><text x="12" y="19" text-anchor="middle" font-size="3.5" fill="#90caf9" font-family="monospace">FILTER</text></svg></div><div class="block-title">Частотн. Фільтр</div></div>
+            </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="trans_display"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#263238" stroke="#546e7a" stroke-width="1.5" opacity="0.5"/><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="#4fc3f7" stroke-width="1"/><rect x="5" y="6" width="14" height="10" rx="1" fill="#0d47a1" opacity="0.3"/><rect x="5" y="6" width="14" height="10" rx="1" fill="none" stroke="#4fc3f7" stroke-width="0.8"/></svg></div><div class="block-title">Напівпрозорий Дисплей</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="led_strip"><svg viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="1" fill="#263238" stroke="#546e7a" stroke-width="1"/><circle cx="5" cy="12" r="1.5" fill="#f44336"/><circle cx="8" cy="12" r="1.5" fill="#ff9800"/><circle cx="11" cy="12" r="1.5" fill="#ffeb3b"/><circle cx="14" cy="12" r="1.5" fill="#4caf50"/><circle cx="17" cy="12" r="1.5" fill="#2196f3"/><circle cx="20" cy="12" r="1.5" fill="#9c27b0"/></svg></div><div class="block-title">LED Стрічка</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="projector_beam"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="6" height="8" rx="1" fill="#455a64" stroke="#78909c" stroke-width="1.5"/><path d="M9 10l12-5v10l-12-5z" fill="#ffeb3b" opacity="0.4"/><path d="M9 10l12-5" stroke="#ffca28" stroke-width="1"/><path d="M9 14l12 5" stroke="#ffca28" stroke-width="1"/><path d="M9 12l12 0" stroke="#fff176" stroke-width="0.8" stroke-dasharray="2 1"/></svg></div><div class="block-title">Прожектор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="laser_pointer"><svg viewBox="0 0 24 24"><rect x="3" y="10" width="8" height="4" rx="1" fill="#b71c1c" stroke="#e53935" stroke-width="1"/><line x1="11" y1="12" x2="21" y2="12" stroke="#f44336" stroke-width="1.5"/><circle cx="21" cy="12" r="1" fill="#f44336"/><circle cx="21" cy="12" r="2" fill="none" stroke="#ef9a9a" stroke-width="0.5" opacity="0.6"/></svg></div><div class="block-title">Лазерний Указник</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="light_barrier"><svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22" stroke="#f44336" stroke-width="1" stroke-dasharray="2 2"/><rect x="3" y="2" width="6" height="4" rx="1" fill="#37474f" stroke="#78909c" stroke-width="1"/><rect x="15" y="18" width="6" height="4" rx="1" fill="#37474f" stroke="#78909c" stroke-width="1"/><circle cx="6" cy="4" r="1" fill="#4caf50"/><circle cx="18" cy="20" r="1" fill="#f44336"/></svg></div><div class="block-title">Світловий Бар'єр</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="glass_block"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1" fill="#e0f7fa" fill-opacity="0.3" stroke="#80deea" stroke-width="1.5"/><line x1="3" y1="3" x2="8" y2="8" stroke="#b2ebf2" stroke-width="0.8" opacity="0.5"/><line x1="3" y1="6" x2="6" y2="9" stroke="#b2ebf2" stroke-width="0.6" opacity="0.4"/></svg></div><div class="block-title">Скло</div></div>
+            </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="ir_transmitter"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="8" height="8" rx="1" fill="#4a148c" stroke="#7b1fa2" stroke-width="1.5"/><circle cx="16" cy="12" r="3" fill="#311b92" stroke="#7c4dff" stroke-width="1"/><path d="M19 9c1.5 1.5 1.5 4.5 0 6" stroke="#b388ff" stroke-width="1" fill="none"/><path d="M21 7c2.5 2.5 2.5 7.5 0 10" stroke="#b388ff" stroke-width="0.8" fill="none" opacity="0.6"/><path d="M23 5c3 3.5 3 10.5 0 14" stroke="#b388ff" stroke-width="0.6" fill="none" opacity="0.3"/></svg></div><div class="block-title">ІЧ Передатчик</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="repeater_block"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#1b5e20" stroke="#4caf50" stroke-width="2"/><path d="M6 12h4" stroke="#a5d6a7" stroke-width="2" stroke-linecap="round"/><path d="M14 8l6 4-6 4" fill="none" stroke="#a5d6a7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 10l2 2-2 2" stroke="#66bb6a" stroke-width="1" fill="none"/></svg></div><div class="block-title">Ретранслятор</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="antenna"><svg viewBox="0 0 24 24"><line x1="12" y1="22" x2="12" y2="6" stroke="#78909c" stroke-width="2"/><circle cx="12" cy="5" r="2" fill="#37474f" stroke="#78909c" stroke-width="1"/><path d="M8 4c0-2 2-3 4-3s4 1 4 3" stroke="#4fc3f7" stroke-width="1.5" fill="none"/><path d="M6 3c0-3 3-4 6-4s6 1 6 4" stroke="#4fc3f7" stroke-width="1" fill="none" opacity="0.6"/><line x1="10" y1="22" x2="14" y2="22" stroke="#78909c" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="block-title">Антена</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="signal_delay"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#1a237e" stroke="#3f51b5" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="none" stroke="#5c6bc0" stroke-width="1.5"/><path d="M12 7v5l3 3" stroke="#ffca28" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M3 12h3M18 12h3" stroke="#7986cb" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="block-title">Затримка Передачі</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="mirror_wall"><svg viewBox="0 0 24 24"><rect x="10" y="2" width="4" height="20" rx="1" fill="#cfd8dc" stroke="#b0bec5" stroke-width="1"/><path d="M8 6l4-2 4 2" stroke="#90a4ae" stroke-width="0.8" fill="none"/><path d="M8 10l4-2 4 2" stroke="#90a4ae" stroke-width="0.8" fill="none"/><path d="M8 14l4-2 4 2" stroke="#90a4ae" stroke-width="0.8" fill="none"/><path d="M8 18l4-2 4 2" stroke="#90a4ae" stroke-width="0.8" fill="none"/><line x1="6" y1="4" x2="12" y2="8" stroke="#e0e0e0" stroke-width="0.6" opacity="0.5"/></svg></div><div class="block-title">Дзеркало Стіна</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="encrypted_wall"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1" fill="#455a64" stroke="#78909c" stroke-width="1.5"/><rect x="9" y="8" width="6" height="8" rx="1" fill="#37474f" stroke="#546e7a" stroke-width="1"/><circle cx="12" cy="11" r="1.5" fill="#ffca28"/><path d="M12 12.5v2" stroke="#ffca28" stroke-width="1.2" stroke-linecap="round"/><rect x="8" y="7" width="8" height="2" rx="0.5" fill="#546e7a"/><rect x="8" y="15" width="8" height="2" rx="0.5" fill="#546e7a"/></svg></div><div class="block-title">Зашифрована Стіна</div></div>
+            </div>
+            <div class="matrix-row">
+                <div class="matrix-cell"><div class="matrix-item" data-id="protected_block"><svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.5 3.4 10.7 8 12 4.6-1.3 8-6.5 8-12V6l-8-4z" fill="#1565c0" stroke="#42a5f5" stroke-width="2"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="block-title">Захисний Блок</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="energy_shield"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#4fc3f7" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="none" stroke="#29b6f6" stroke-width="1" opacity="0.5"/><path d="M8 8l2 2M14 14l2 2M16 8l-2 2M8 16l2-2" stroke="#4fc3f7" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="#4fc3f7" opacity="0.6"/></svg></div><div class="block-title">Енергетичний Щит</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="proximity_sensor"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="#455a64" stroke="#78909c" stroke-width="1.5"/><circle cx="12" cy="12" r="5" fill="none" stroke="#4fc3f7" stroke-width="0.8" opacity="0.8"/><circle cx="12" cy="12" r="7" fill="none" stroke="#4fc3f7" stroke-width="0.6" opacity="0.5"/><circle cx="12" cy="12" r="9" fill="none" stroke="#4fc3f7" stroke-width="0.4" opacity="0.3"/><circle cx="12" cy="12" r="1.2" fill="#4fc3f7"/></svg></div><div class="block-title">Сенсор Наближення</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="timed_switch"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3" fill="#1a237e" stroke="#5c6bc0" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="none" stroke="#ffca28" stroke-width="1.5"/><path d="M12 7v5l2 2" stroke="#ffca28" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="1.5" fill="#ffca28"/><rect x="10" y="18" width="4" height="2" rx="1" fill="#4caf50"/></svg></div><div class="block-title">Годинн. Перемикач</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="pressure_plate"><svg viewBox="0 0 24 24"><rect x="3" y="16" width="18" height="4" rx="1" fill="#78909c" stroke="#90a4ae" stroke-width="1.5"/><rect x="5" y="14" width="14" height="3" rx="1" fill="#b0bec5" stroke="#cfd8dc" stroke-width="1"/><path d="M8 12v2M12 12v2M16 12v2" stroke="#4caf50" stroke-width="1" stroke-dasharray="1 1" opacity="0.6"/><rect x="3" y="19" width="18" height="3" rx="0.5" fill="#546e7a"/></svg></div><div class="block-title">Датчик Тиску</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="seismograph"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#263238" stroke="#546e7a" stroke-width="1.5"/><path d="M5 14l2-4 2 6 2-8 2 10 2-6 2 4 2-2 2 1 2-3" stroke="#4caf50" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="14" x2="19" y2="14" stroke="#546e7a" stroke-width="0.5" stroke-dasharray="2 2"/></svg></div><div class="block-title">Сейсмограф</div></div>
+            </div>
         </div>
 
         <div id="hotbar-container">
@@ -930,7 +970,7 @@
 
         const rainToggleBtn = document.getElementById('rain-toggle');
         const rainOverlay = document.getElementById('rain-overlay');
-        const RAIN_SKIP_TYPES = ['wall', 'web_display', 'rain_shield'];
+        const RAIN_SKIP_TYPES = ['wall', 'web_display', 'rain_shield', 'protected_block', 'glass_block', 'encrypted_wall', 'mirror_wall'];
         let rainDropTimer = null;
 
         function isProtectedByRainShield(cellX, cellY) {
@@ -1104,6 +1144,64 @@
                     fogEl.style.cssText = `position:absolute;pointer-events:none;z-index:4;border-radius:50%;background:radial-gradient(circle,rgba(120,144,156,0.35) 0%,rgba(120,144,156,0.15) 50%,transparent 100%);left:${cx - radius}px;top:${cy - radius}px;width:${radius*2}px;height:${radius*2}px;`;
                     objectsLayer.appendChild(fogEl);
                     fogElements.push(fogEl);
+                }
+            }
+        }
+
+        function drawLasers() {
+            document.querySelectorAll('.laser-beam-line').forEach(el => el.remove());
+            for (let key in gridObjects) {
+                let obj = gridObjects[key];
+                if (obj.type === 'laser_pointer' && obj.laserActive) {
+                    let off = getOffset(obj.rotation);
+                    for (let li = 1; li <= 20; li++) {
+                        let lx = obj.x + off.dx * li, ly = obj.y + off.dy * li;
+                        let lk = `${lx},${ly}`;
+                        if (gridObjects[lk]) break;
+                        let beam = document.createElement('div');
+                        beam.className = 'laser-beam-line';
+                        beam.style.cssText = `position:absolute;pointer-events:none;z-index:9;background:#f44336;box-shadow:0 0 4px 1px #ff1744;border-radius:1px;`;
+                        let sz = 3;
+                        beam.style.width = (off.dx !== 0 ? CELL_SIZE * 0.3 : sz) + 'px';
+                        beam.style.height = (off.dy !== 0 ? CELL_SIZE * 0.3 : sz) + 'px';
+                        beam.style.left = ((lx * CELL_SIZE) + camX + CELL_SIZE/2 - (off.dx !== 0 ? CELL_SIZE*0.15 : sz/2)) + 'px';
+                        beam.style.top = ((ly * CELL_SIZE) + camY + CELL_SIZE/2 - (off.dy !== 0 ? CELL_SIZE*0.15 : sz/2)) + 'px';
+                        objectsLayer.appendChild(beam);
+                    }
+                }
+                if (obj.type === 'projector_beam' && obj.isActive) {
+                    let off = getOffset(obj.rotation);
+                    let colorMap = { red: '#f44336', green: '#4caf50', blue: '#2196f3', yellow: '#ffeb3b' };
+                    let beamColor = colorMap[obj.lastSignalColor] || '#f44336';
+                    let bLen = obj.beamLength ?? 8;
+                    for (let bi = 1; bi <= bLen; bi++) {
+                        let bx = obj.x + off.dx * bi, by = obj.y + off.dy * bi;
+                        let bk = `${bx},${by}`;
+                        if (gridObjects[bk]) break;
+                        let beam = document.createElement('div');
+                        beam.className = 'laser-beam-line';
+                        beam.style.cssText = `position:absolute;pointer-events:none;z-index:9;border-radius:1px;`;
+                        beam.style.background = beamColor;
+                        beam.style.boxShadow = `0 0 6px 2px ${beamColor}`;
+                        beam.style.width = (off.dx !== 0 ? CELL_SIZE * 0.4 : 4) + 'px';
+                        beam.style.height = (off.dy !== 0 ? CELL_SIZE * 0.4 : 4) + 'px';
+                        beam.style.left = ((bx * CELL_SIZE) + camX + CELL_SIZE/2 - (off.dx !== 0 ? CELL_SIZE*0.2 : 2)) + 'px';
+                        beam.style.top = ((by * CELL_SIZE) + camY + CELL_SIZE/2 - (off.dy !== 0 ? CELL_SIZE*0.2 : 2)) + 'px';
+                        objectsLayer.appendChild(beam);
+                    }
+                }
+                if (obj.type === 'led_strip' && obj.isActive) {
+                    let svg = obj.element.querySelector('svg');
+                    if (svg) {
+                        let leds = svg.querySelectorAll('circle');
+                        for (let li = 0; li < Math.min(leds.length, 8); li++) {
+                            if (obj.ledStates && obj.ledStates[li]) {
+                                leds[li].setAttribute('fill', '#4caf50');
+                            } else {
+                                leds[li].setAttribute('fill', '#333');
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1775,6 +1873,60 @@
                     configModal.style.display = 'flex';
                     return;
                 }
+                if (clickedObj.type === 'encryptor') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Шифратора';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Код:</label><input type="number" id="cfg-enc-code" min="0" max="255" value="${clickedObj.encryptCode ?? 42}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'decoder') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Декодера';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Код:</label><input type="number" id="cfg-dec-code" min="0" max="255" value="${clickedObj.decryptCode ?? 42}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'signal_delay') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Затримки';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Затримка (тіків):</label><input type="number" id="cfg-sd-delay" min="1" max="20" value="${clickedObj.signalDelay ?? 5}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'timed_switch') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Годинного Перемикача';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Період (сек):</label><input type="number" id="cfg-ts-period" min="1" max="60" value="${clickedObj.switchPeriod ?? 5}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'freq_comparator') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Порівняльника Частоти';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Частота:</label><input type="number" id="cfg-fc-freq" min="1" max="10" value="${clickedObj.targetFrequency ?? 3}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+                if (clickedObj.type === 'projector_beam') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = 'Налаштування Прожектора';
+                    modalFields.innerHTML = `
+                        <div class="modal-row"><label>Довжина:</label><input type="number" id="cfg-pb-len" min="1" max="15" value="${clickedObj.beamLength ?? 8}"></div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
                 if (clickedObj.type === 'button' || clickedObj.type === 'dir_button') {
                     clickedObj.manualTrigger = true; doGameTick();
                 }
@@ -2345,6 +2497,18 @@
                     activeConfigTarget.elevatorLength = Math.max(1, Math.min(10, parseInt(document.getElementById('cfg-elev-len').value) || 3));
                     const elBadge = activeConfigTarget.element.querySelector('.elevator-badge');
                     if (elBadge) elBadge.innerText = `${activeConfigTarget.elevatorLength}`;
+                } else if (activeConfigTarget.type === 'encryptor') {
+                    activeConfigTarget.encryptCode = Math.max(0, Math.min(255, parseInt(document.getElementById('cfg-enc-code').value) || 42));
+                } else if (activeConfigTarget.type === 'decoder') {
+                    activeConfigTarget.decryptCode = Math.max(0, Math.min(255, parseInt(document.getElementById('cfg-dec-code').value) || 42));
+                } else if (activeConfigTarget.type === 'signal_delay') {
+                    activeConfigTarget.signalDelay = Math.max(1, Math.min(20, parseInt(document.getElementById('cfg-sd-delay').value) || 5));
+                } else if (activeConfigTarget.type === 'timed_switch') {
+                    activeConfigTarget.switchPeriod = Math.max(1, Math.min(60, parseInt(document.getElementById('cfg-ts-period').value) || 5));
+                } else if (activeConfigTarget.type === 'freq_comparator') {
+                    activeConfigTarget.targetFrequency = Math.max(1, Math.min(10, parseInt(document.getElementById('cfg-fc-freq').value) || 3));
+                } else if (activeConfigTarget.type === 'projector_beam') {
+                    activeConfigTarget.beamLength = Math.max(1, Math.min(15, parseInt(document.getElementById('cfg-pb-len').value) || 8));
                 } else {
                     activeConfigTarget.frequency = parseInt(document.getElementById('cfg-freq').value) || 1;
                     activeConfigTarget.element.setAttribute('data-freq', `CH:${activeConfigTarget.frequency}`);
@@ -2479,7 +2643,15 @@
                     particleColor: o.particleColor, particleType: o.particleType,
                     burnedOut: o.burnedOut || false,
                     timerDelay: o.timerDelay,
-                    elevatorLength: o.elevatorLength
+                    elevatorLength: o.elevatorLength,
+                    encryptCode: o.encryptCode, decryptCode: o.decryptCode,
+                    signalDelay: o.signalDelay,
+                    switchPeriod: o.switchPeriod,
+                    targetFrequency: o.targetFrequency,
+                    beamLength: o.beamLength,
+                    proximityRange: o.proximityRange,
+                    syncGroup: o.syncGroup,
+                    ramValue: o.ramValue
                 });
             }
             let displays = currentDisplays.map(d => ({
@@ -2584,7 +2756,25 @@
                 timerDelay: saved.timerDelay ?? 5, timerRemaining: 0, timerActive: false,
                 dynamiteTimer: 0, dynamiteActive: false,
                 fogRadius: 3, fogActive: false,
-                elevatorLength: saved.elevatorLength ?? 3, elevatorExtended: false, elevatorArmEl: null
+                elevatorLength: saved.elevatorLength ?? 3, elevatorExtended: false, elevatorArmEl: null,
+                encryptCode: saved.encryptCode ?? 42, decryptCode: saved.decryptCode ?? 42,
+                signalDelay: saved.signalDelay ?? 5, delayBuffer: [],
+                switchPeriod: saved.switchPeriod ?? 5, switchTicks: 0, switchState: false,
+                targetFrequency: saved.targetFrequency ?? 3,
+                beamLength: saved.beamLength ?? 8,
+                conveyorDir: 0, conveyorCooldown: 0,
+                ledStates: [false,false,false,false,false,false,false,false],
+                laserActive: false,
+                barrierBroken: false,
+                shieldActive: false,
+                irRange: 3,
+                antennaReceived: null,
+                ramValue: 0, ramWrite: false,
+                bridgeExtended: false,
+                proximityRange: 2,
+                seismoMotion: false,
+                syncGroup: 0, syncReady: false,
+                winchTarget: null
             };
 
             const go = gridObjects[key];
@@ -2737,6 +2927,20 @@
                 objectsLayer.appendChild(arm);
                 go.elevatorArmEl = arm;
             }
+            if (type === 'encryptor') { const b = document.createElement('div'); b.className = 'encryptor-badge'; b.innerText = `K:${go.encryptCode ?? 42}`; div.appendChild(b); }
+            if (type === 'decoder') { const b = document.createElement('div'); b.className = 'decoder-badge'; b.innerText = `K:${go.decryptCode ?? 42}`; div.appendChild(b); }
+            if (type === 'signal_delay') { const b = document.createElement('div'); b.className = 'signal-delay-badge'; b.innerText = `${go.signalDelay ?? 5}T`; div.appendChild(b); }
+            if (type === 'timed_switch') { const b = document.createElement('div'); b.className = 'timer-switch-badge'; b.innerText = `${go.switchPeriod ?? 5}s`; div.appendChild(b); }
+            if (type === 'freq_comparator') { const b = document.createElement('div'); b.className = 'freq-comp-badge'; b.innerText = `f:${go.targetFrequency ?? 3}`; div.appendChild(b); }
+            if (type === 'led_strip') { const b = document.createElement('div'); b.className = 'led-badge'; b.innerText = 'LED'; div.appendChild(b); }
+            if (type === 'projector_beam') { const b = document.createElement('div'); b.className = 'proj-beam-badge'; b.innerText = `${go.beamLength ?? 8}`; div.appendChild(b); }
+            if (type === 'proximity_sensor') { const b = document.createElement('div'); b.className = 'prox-badge'; b.innerText = `${go.proximityRange ?? 2}`; div.appendChild(b); }
+            if (type === 'seismograph') { const b = document.createElement('div'); b.className = 'seismo-badge'; b.innerText = '---'; div.appendChild(b); }
+            if (type === 'synchronizer') { const b = document.createElement('div'); b.className = 'sync-badge'; b.innerText = `G:${go.syncGroup}`; div.appendChild(b); }
+            if (type === 'mag_winch') { const b = document.createElement('div'); b.className = 'mag-winch-badge'; b.innerText = 'M'; div.appendChild(b); }
+            if (type === 'signal_filter') { const b = document.createElement('div'); b.className = 'freq-filter-badge'; b.innerText = 'F'; div.appendChild(b); }
+            if (type === 'conveyor') { const b = document.createElement('div'); b.className = 'conveyor-badge'; b.innerText = '→'; div.appendChild(b); }
+            if (type === 'signal_ram') { const b = document.createElement('div'); b.className = 'ram-badge'; b.innerText = `${go.ramValue}`; div.appendChild(b); }
 
             if (type === 'lever' && go.leverToggled) {
                 svg.innerHTML = `<rect x="5" y="16" width="14" height="6" rx="1" fill="#757575"/><line x1="12" y1="16" x2="16" y2="6" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="6" r="3" fill="#4caf50"/>`;
@@ -3817,6 +4021,35 @@
                     sendSignal(obj.x, obj.y, 0, 1, 'red'); sendSignal(obj.x, obj.y, -1, 0, 'red');
                 }
 
+                if (obj.type === 'timed_switch') {
+                    obj.switchTicks = (obj.switchTicks || 0) + 1;
+                    if (obj.switchTicks >= (obj.switchPeriod ?? 5)) {
+                        obj.switchTicks = 0;
+                        obj.switchState = !obj.switchState;
+                    }
+                    if (obj.switchState) {
+                        sendSignal(obj.x, obj.y, 0, -1, 'yellow'); sendSignal(obj.x, obj.y, 1, 0, 'yellow');
+                        sendSignal(obj.x, obj.y, 0, 1, 'yellow'); sendSignal(obj.x, obj.y, -1, 0, 'yellow');
+                    }
+                }
+
+                if (obj.type === 'ir_transmitter' && obj.isActive) {
+                    sendSignal(obj.x, obj.y, 0, -1, 'green', { channelValue: 200 });
+                    sendSignal(obj.x, obj.y, 1, 0, 'green', { channelValue: 200 });
+                    sendSignal(obj.x, obj.y, 0, 1, 'green', { channelValue: 200 });
+                    sendSignal(obj.x, obj.y, -1, 0, 'green', { channelValue: 200 });
+                }
+
+                if (obj.type === 'repeater_block' && obj.isActive) {
+                    let off = getOffset(obj.rotation);
+                    sendSignal(obj.x, obj.y, off.dx, off.dy, obj.lastSignalColor || 'red', { channelValue: 255 });
+                }
+
+                if (obj.type === 'antenna' && obj.isActive) {
+                    let off = getOffset(obj.rotation);
+                    sendSignal(obj.x, obj.y, off.dx, off.dy, 'yellow');
+                }
+
                 if (obj.type === 'battery') {
                     let charge = obj.batteryCharge ?? 100;
                     if (charge > 0) {
@@ -4000,6 +4233,125 @@
                     sendSignal(obj.x, obj.y, 1, 0, currentEmitColor, extraData);
                     sendSignal(obj.x, obj.y, 0, 1, currentEmitColor, extraData);
                     sendSignal(obj.x, obj.y, -1, 0, currentEmitColor, extraData);
+                    continue;
+                }
+
+                if (obj.type === 'signal_delay') {
+                    let off = getOffset(obj.rotation);
+                    let delayBuf = obj.delayBuffer || [];
+                    delayBuf.push({ color: currentEmitColor, rgbChannel: obj.lastRgbChannel, channelValue: obj.lastChannelValue, smokeData: obj.lastSmokeData, dhtData: obj.lastDhtData, rainData: obj.lastRainData });
+                    if (delayBuf.length > (obj.signalDelay ?? 5)) {
+                        let sig = delayBuf.shift();
+                        sendSignal(obj.x, obj.y, off.dx, off.dy, sig.color, { rgbChannel: sig.rgbChannel, channelValue: sig.channelValue, smokeData: sig.smokeData, dhtData: sig.dhtData, rainData: sig.rainData });
+                    }
+                    obj.delayBuffer = delayBuf;
+                    continue;
+                }
+
+                if (obj.type === 'conveyor') {
+                    if (obj.conveyorCooldown <= 0) {
+                        let off = getOffset(obj.rotation);
+                        let targetKey3 = `${obj.x + off.dx},${obj.y + off.dy}`;
+                        let srcKey3 = `${obj.x - off.dx},${obj.y - off.dy}`;
+                        if (gridObjects[srcKey3] && !gridObjects[targetKey3] && gridObjects[srcKey3].type !== 'wall' && gridObjects[srcKey3].type !== 'web_display') {
+                            moveObject(srcKey3, obj.x + off.dx, obj.y + off.dy);
+                            obj.conveyorCooldown = 3;
+                        }
+                    } else {
+                        obj.conveyorCooldown--;
+                    }
+                    continue;
+                }
+
+                if (obj.type === 'projector_beam') {
+                    let off = getOffset(obj.rotation);
+                    let bLen = obj.beamLength ?? 8;
+                    for (let bi = 1; bi <= bLen; bi++) {
+                        let bx = obj.x + off.dx * bi, by = obj.y + off.dy * bi;
+                        let bk = `${bx},${by}`;
+                        if (gridObjects[bk]) {
+                            incoming[bk] = incoming[bk] || [];
+                            incoming[bk].push({ color: 'yellow', fromX: obj.x, fromY: obj.y, channelValue: 255 });
+                            break;
+                        }
+                    }
+                    continue;
+                }
+
+                if (obj.type === 'laser_pointer') {
+                    let off = getOffset(obj.rotation);
+                    for (let li = 1; li <= 20; li++) {
+                        let lx = obj.x + off.dx * li, ly = obj.y + off.dy * li;
+                        let lk = `${lx},${ly}`;
+                        if (gridObjects[lk]) {
+                            incoming[lk] = incoming[lk] || [];
+                            incoming[lk].push({ color: 'red', fromX: obj.x, fromY: obj.y });
+                            break;
+                        }
+                    }
+                    continue;
+                }
+
+                if (obj.type === 'winch') {
+                    let off = getOffset(obj.rotation);
+                    for (let wi = 2; wi >= 1; wi--) {
+                        let wx = obj.x + off.dx * wi, wy = obj.y + off.dy * wi;
+                        let wk = `${wx},${wy}`;
+                        if (!gridObjects[wk]) {
+                            let behindK = `${obj.x - off.dx},${obj.y - off.dy}`;
+                            if (gridObjects[behindK] && gridObjects[behindK].type !== 'wall' && gridObjects[behindK].type !== 'web_display') {
+                                moveObject(behindK, wx, wy);
+                                break;
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                if (obj.type === 'mag_winch') {
+                    let off = getOffset(obj.rotation);
+                    let winchRange = 4;
+                    for (let mi = 2; mi <= winchRange; mi++) {
+                        let mx = obj.x + off.dx * mi, my = obj.y + off.dy * mi;
+                        let mk = `${mx},${my}`;
+                        if (gridObjects[mk] && (gridObjects[mk].type === 'battery' || gridObjects[mk].type === 'salt_battery' || gridObjects[mk].type === 'transmitter' || gridObjects[mk].type === 'receiver')) {
+                            let prevK = `${mx - off.dx},${my - off.dy}`;
+                            if (!gridObjects[prevK]) {
+                                moveObject(mk, mx - off.dx, my - off.dy);
+                                break;
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                if (obj.type === 'lift_bridge') {
+                    if (obj.bridgeExtended) {
+                        for (let ly2 = 1; ly2 <= 3; ly2++) {
+                            let bk2 = `${obj.x},${obj.y - ly2}`;
+                            if (gridObjects[bk2] && gridObjects[bk2].type !== 'wall' && gridObjects[bk2].type !== 'web_display') {
+                                if (!gridObjects[`${obj.x},${obj.y - ly2 - 3}`]) {
+                                    moveObject(bk2, obj.x, obj.y - ly2 - 3);
+                                }
+                            }
+                        }
+                        obj.bridgeExtended = false;
+                    }
+                    continue;
+                }
+
+                if (obj.type === 'energy_shield') {
+                    let shieldRange = 3;
+                    for (let si = 0; si < shieldRange; si++) {
+                        let sx = obj.x - si, sy = obj.y;
+                        let sk = `${sx},${sy}`;
+                        if (gridObjects[sk]) gridObjects[sk].shieldActive = true;
+                    }
+                    for (let si2 = 0; si2 < shieldRange; si2++) {
+                        let sx2 = obj.x + si2, sy2 = obj.y;
+                        let sk2 = `${sx2},${sy2}`;
+                        if (gridObjects[sk2]) gridObjects[sk2].shieldActive = true;
+                    }
                     continue;
                 }
 
@@ -4836,6 +5188,93 @@
                     nextActive = true;
                     obj.fogActive = true;
                     signalColor = 'yellow';
+                } else if (obj.type === 'encryptor') {
+                    nextActive = hasInput;
+                    signalColor = 'green';
+                } else if (obj.type === 'decoder') {
+                    nextActive = hasInput;
+                    signalColor = 'green';
+                } else if (obj.type === 'freq_comparator') {
+                    nextActive = hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'multiplexer') {
+                    nextActive = signals.length > 0;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'demultiplexer') {
+                    nextActive = hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'signal_ram') {
+                    if (hasInput) {
+                        obj.ramValue = (signals[0].channelValue ?? obj.ramValue) & 0xFF;
+                    }
+                    nextActive = obj.ramValue > 0;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'led_strip') {
+                    nextActive = hasInput;
+                    if (hasInput) {
+                        let val = signals[0].channelValue ?? 255;
+                        for (let li2 = 0; li2 < 8; li2++) {
+                            obj.ledStates[li2] = (val >> (7 - li2)) & 1 ? true : false;
+                        }
+                        signalColor = 'yellow';
+                    }
+                } else if (obj.type === 'laser_pointer') {
+                    nextActive = hasInput;
+                    obj.laserActive = nextActive;
+                    signalColor = 'red';
+                } else if (obj.type === 'light_barrier') {
+                    nextActive = hasInput;
+                    signalColor = 'red';
+                } else if (obj.type === 'glass_block') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'mirror_wall') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'protected_block') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'proximity_sensor') {
+                    let pRange = obj.proximityRange ?? 2;
+                    let motionNear = false;
+                    for (let px = -pRange; px <= pRange; px++) {
+                        for (let py = -pRange; py <= pRange; py++) {
+                            let pk = `${obj.x + px},${obj.y + py}`;
+                            if (gridObjects[pk] && gridObjects[pk] !== obj && gridObjects[pk].type !== 'wall') {
+                                motionNear = true;
+                            }
+                        }
+                    }
+                    nextActive = motionNear || hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'seismograph') {
+                    nextActive = mapMotionDetected || hasInput;
+                    signalColor = 'green';
+                } else if (obj.type === 'synchronizer') {
+                    nextActive = hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'trans_display') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'ram') {
+                    nextActive = hasInput;
+                    signalColor = 'red';
+                } else if (obj.type === 'encrypted_wall') {
+                    nextActive = hasInput;
+                    if (signals.length > 0) signalColor = signals[0].color;
+                } else if (obj.type === 'pressure_plate') {
+                    let hasPressure = false;
+                    let ppNeighbors = [`${obj.x},${obj.y-1}`,`${obj.x+1},${obj.y}`,`${obj.x},${obj.y+1}`,`${obj.x-1},${obj.y}`];
+                    for (let ppk of ppNeighbors) {
+                        if (gridObjects[ppk] && (gridObjects[ppk].type === 'piston' || gridObjects[ppk].type === 'gravity_block' || gridObjects[ppk].isActive)) {
+                            hasPressure = true;
+                        }
+                    }
+                    nextActive = hasPressure || hasInput;
+                    signalColor = 'yellow';
+                } else if (obj.type === 'signal_filter') {
+                    nextActive = hasInput;
+                    signalColor = 'yellow';
                 } else if (obj.type === 'elevator') {
                     if (hasInput && !obj.elevatorExtended) {
                         obj.elevatorExtended = true;
@@ -4915,6 +5354,7 @@
             mapMotionDetected = false;
             drawLighting();
             drawFog();
+            drawLasers();
         }
 
         (function autoLoadLastWorld() {
