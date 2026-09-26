@@ -5567,7 +5567,7 @@
                     let behindKey = `${obj.x - dOff.dx},${obj.y - dOff.dy}`;
                     let behindObj = gridObjects[behindKey];
 
-                    if (behindObj && behindObj.type === 'arrow' && behindObj.isActive) {
+                    if (behindObj && behindObj.isActive && !behindObj.burnedOut && !behindObj.isBlocked) {
                         nextActive = true;
                         signalColor = behindObj.lastSignalColor || 'red';
                         signalRgbChan = behindObj.lastRgbChannel || signalColor;
@@ -6340,7 +6340,7 @@
             split_f_r: 'Ділить сигнал вперед і праворуч.',
             split_3: 'Роздає сигнал на три сторони.',
             pulse_gen: 'Щотіку видає короткий імпульс.',
-            detector: 'Спрацьовує, коли клітинка перед ним зайнята блоком.',
+            detector: 'Викачує сигнал з будь-якого активного блока позаду себе (колір і дані копіюються).',
             fast_arrow: 'Веде сигнал швидше за звичайну стрілку.',
             blue_arrow: 'Веде синій сигнал окремим ланцюгом.',
             diagonal: 'Веде сигнал по діагоналі.',
