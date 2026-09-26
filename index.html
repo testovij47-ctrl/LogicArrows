@@ -71,7 +71,7 @@
         .energy-shield-cell svg { filter: drop-shadow(0 0 4px #4fc3f7); }
         @keyframes conveyor-anim { 0%{background-position:0 0} 100%{background-position:20px 0} }
 
-        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge, .encryptor-badge, .decoder-badge, .freq-comp-badge, .mux-badge, .demux-badge, .ram-badge, .led-badge, .proj-beam-badge, .signal-delay-badge, .timer-switch-badge, .prox-badge, .seismo-badge, .sync-badge, .mag-winch-badge, .freq-filter-badge, .conveyor-badge, .note-block-badge, .button-hold-badge {
+        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge, .encryptor-badge, .decoder-badge, .freq-comp-badge, .mux-badge, .demux-badge, .ram-badge, .led-badge, .proj-beam-badge, .signal-delay-badge, .timer-switch-badge, .prox-badge, .seismo-badge, .sync-badge, .mag-winch-badge, .freq-filter-badge, .conveyor-badge, .note-block-badge, .button-hold-badge, .cannon-badge {
             position: absolute; top: 1px; right: 1px;
             font-size: 7px; font-weight: bold; color: #fff;
             background: rgba(0,0,0,0.7); padding: 0 2px; border-radius: 2px;
@@ -626,6 +626,7 @@
                 <div class="matrix-cell"><div class="matrix-item" data-id="wall"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="#757575" stroke="#424242" stroke-width="2"/></svg></div><div class="block-title">Стіна</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="piston"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="8" fill="#424242"/><rect x="2" y="4" width="20" height="4" fill="#a1887f"/><rect x="10" y="8" width="4" height="6" fill="#e0e0e0"/></svg></div><div class="block-title">Поршень</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="sticky_piston"><svg viewBox="0 0 24 24"><rect x="4" y="14" width="16" height="8" fill="#424242"/><rect x="2" y="4" width="20" height="4" fill="#4caf50"/><rect x="10" y="8" width="4" height="6" fill="#e0e0e0"/></svg></div><div class="block-title">Липкий П.</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="cannon"><svg viewBox="0 0 24 24"><rect x="7" y="14" width="10" height="8" rx="1" fill="#37474f" stroke="#263238" stroke-width="1.5"/><rect x="10" y="3" width="4" height="13" rx="1" fill="#455a64" stroke="#263238" stroke-width="1"/><circle cx="12" cy="5" r="2.2" fill="#111"/><circle cx="17" cy="18" r="1.6" fill="#ff9800"/></svg></div><div class="block-title">Гармата</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="lever"><svg viewBox="0 0 24 24"><rect x="5" y="16" width="14" height="6" rx="1" fill="#757575"/><line x1="12" y1="16" x2="8" y2="6" stroke="#bdbdbd" stroke-width="3" stroke-linecap="round"/><circle cx="8" cy="6" r="3" fill="#e53935"/></svg></div><div class="block-title">Важіль</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="transmitter"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="#4a1515" stroke="#ff1744" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="#ff1744"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4" stroke="#fff" stroke-width="1.5"/></svg></div><div class="block-title">Передатчик</div></div>
             </div>
@@ -1034,6 +1035,25 @@
             slots.forEach(s => s.classList.remove('active'));
             phantom.style.display = 'none';
             document.getElementById('mob-hands')?.classList.add('active');
+        }
+        // Гармата: по фронту сигналу вистрілює блок попереду вперед до перешкоди (макс. дальність)
+        function fireCannon(obj) {
+            if ((obj.cannonCooldown || 0) > 0) return;
+            const off = getOffset(obj.rotation);
+            const range = obj.cannonRange ?? 6;
+            const fx = obj.x + off.dx, fy = obj.y + off.dy;
+            const fKey = `${fx},${fy}`;
+            const target = gridObjects[fKey];
+            if (isGameRunning) playBuzzerBeep(120);
+            obj.cannonCooldown = 5;
+            if (!target || target.type === 'wall' || target.type === 'web_display') return;
+            let lx = fx, ly = fy;
+            for (let s = 2; s <= range + 1; s++) {
+                const tx = obj.x + off.dx * s, ty = obj.y + off.dy * s;
+                if (!gridObjects[`${tx},${ty}`]) { lx = tx; ly = ty; }
+                else break;
+            }
+            if (lx !== fx || ly !== fy) moveObject(fKey, lx, ly);
         }
         function markHandsFull() {
             document.getElementById('mob-hands')?.classList.remove('active');
@@ -1584,6 +1604,20 @@
                             <label>Частота звуку (Гц):</label>
                             <input type="number" id="cfg-buzzer-freq" min="100" max="5000" value="${clickedObj.buzzerFreq ?? (clickedObj.type === 'siren' ? 1200 : 880)}">
                         </div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+
+                if (clickedObj.type === 'cannon') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = "Гармата 🚀";
+                    modalFields.innerHTML = `
+                        <div class="modal-row">
+                            <label>Дальність (клітинок):</label>
+                            <input type="number" id="cfg-cannon-range" min="2" max="12" value="${clickedObj.cannonRange ?? 6}">
+                        </div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">По фронту сигналу вистрілює блок попереду вперед до перешкоди. Перезарядка 5 тіків.</div>
                     `;
                     configModal.style.display = 'flex';
                     return;
@@ -2301,6 +2335,7 @@
                     x: cellX, y: cellY, isActive: false, manualTrigger: false, isBlocked: false, 
                     leverToggled: false, lastSignalColor: 'red', frequency: 1,
                     buttonHoldTicks: 1, buttonTicksLeft: 0,
+                    cannonRange: 6, cannonCooldown: 0,
                     extended: false, rgbChannel: 'red', channelValue: 255,
                     smokePercent: 45, tempVal: 25, humidityVal: 60, batteryCharge: 100,
                     rainPercent: 50, buzzerFreq: 880, sensitivity: 80,
@@ -2356,6 +2391,13 @@
                     const badge = document.createElement('div');
                     badge.className = 'button-hold-badge';
                     badge.innerText = '1T';
+                    div.appendChild(badge);
+                }
+
+                if (activeId === 'cannon') {
+                    const badge = document.createElement('div');
+                    badge.className = 'cannon-badge';
+                    badge.innerText = '➤6';
                     div.appendChild(badge);
                 }
 
@@ -2685,6 +2727,10 @@
                 } else if (activeConfigTarget.type === 'buzzer' || activeConfigTarget.type === 'siren') {
                     const fVal = Math.max(100, Math.min(5000, parseInt(document.getElementById('cfg-buzzer-freq').value) || 880));
                     activeConfigTarget.buzzerFreq = fVal;
+                } else if (activeConfigTarget.type === 'cannon') {
+                    activeConfigTarget.cannonRange = Math.max(2, Math.min(12, parseInt(document.getElementById('cfg-cannon-range').value) || 6));
+                    const cBadge = activeConfigTarget.element.querySelector('.cannon-badge');
+                    if (cBadge) cBadge.innerText = `➤${activeConfigTarget.cannonRange}`;
                 } else if (activeConfigTarget.type === 'note_block') {
                     const nSel = document.getElementById('cfg-note-name');
                     const picked = nSel ? nSel.value : 'DO';
@@ -2963,6 +3009,7 @@
                     type: o.type, x: o.x, y: o.y, rotation: o.rotation ?? 0,
                     leverToggled: o.leverToggled, frequency: o.frequency,
                     buttonHoldTicks: o.buttonHoldTicks,
+                    cannonRange: o.cannonRange,
                     rgbChannel: o.rgbChannel, channelValue: o.channelValue,
                     smokePercent: o.smokePercent, tempVal: o.tempVal, humidityVal: o.humidityVal,
                     batteryCharge: o.batteryCharge, rainPercent: o.rainPercent, buzzerFreq: o.buzzerFreq,
@@ -3068,6 +3115,7 @@
                 x: cellX, y: cellY, isActive: false, manualTrigger: false, isBlocked: false,
                 leverToggled: saved.leverToggled || false, lastSignalColor: 'red', frequency: saved.frequency ?? 1,
                 buttonHoldTicks: saved.buttonHoldTicks ?? 1, buttonTicksLeft: 0,
+                cannonRange: saved.cannonRange ?? 6, cannonCooldown: 0,
                 extended: false, rgbChannel: saved.rgbChannel || 'red', channelValue: saved.channelValue ?? 255,
                 smokePercent: saved.smokePercent ?? 45, tempVal: saved.tempVal ?? 25, humidityVal: saved.humidityVal ?? 60,
                 batteryCharge: saved.batteryCharge ?? 100,
@@ -3140,6 +3188,7 @@
             if (type === 'servo') { const b = document.createElement('div'); b.className = 'servo-angle-badge'; b.innerText = '0°'; div.appendChild(b); }
             if (type === 'seven_segment') { const b = document.createElement('div'); b.className = 'seven-seg-badge'; b.innerText = `${go.displayDigit}`; div.appendChild(b); }
             if (type === 'button' || type === 'dir_button') { const b = document.createElement('div'); b.className = 'button-hold-badge'; b.innerText = `${go.buttonHoldTicks ?? 1}T`; div.appendChild(b); }
+            if (type === 'cannon') { const b = document.createElement('div'); b.className = 'cannon-badge'; b.innerText = `➤${go.cannonRange ?? 6}`; div.appendChild(b); }
             if (type === 'note_block') { const b = document.createElement('div'); b.className = 'note-block-badge'; b.innerText = `${go.noteName || 'DO'}`; div.appendChild(b); }
             if (type === 'rain_sensor') { const b = document.createElement('div'); b.className = 'rain-sensor-badge'; b.innerText = `${go.rainPercent}%`; div.appendChild(b); }
             if (type === 'tilt_sensor') { const b = document.createElement('div'); b.className = 'tilt-sensor-badge'; b.innerText = `${go.sensitivity}%`; div.appendChild(b); }
@@ -4562,7 +4611,7 @@
             }
 
             for (let key in gridObjects) {
-                let obj = gridObjects[key]; if (!obj.isActive || obj.isBlocked || obj.burnedOut || obj.type === 'web_display' || obj.type === 'magnet' || obj.type === 'controlled_magnet' || obj.type === 'servo' || obj.type === 'seven_segment' || obj.type === 'buzzer' || obj.type === 'note_block' || obj.type === 'siren' || obj.type === 'birthday_chip' || obj.type === 'windmill' || obj.type === 'analog_clock' || obj.type === 'bar_gauge' || obj.type === 'stopwatch' || obj.type === 'compass' || obj.type === 'rotator_mechanism' || obj.type === 'observer' || obj.type === 'button' || obj.type === 'dir_button' || obj.type === 'keyboard_button') continue;
+                let obj = gridObjects[key]; if (!obj.isActive || obj.isBlocked || obj.burnedOut || obj.type === 'web_display' || obj.type === 'magnet' || obj.type === 'controlled_magnet' || obj.type === 'servo' || obj.type === 'seven_segment' || obj.type === 'buzzer' || obj.type === 'note_block' || obj.type === 'siren' || obj.type === 'birthday_chip' || obj.type === 'windmill' || obj.type === 'analog_clock' || obj.type === 'bar_gauge' || obj.type === 'stopwatch' || obj.type === 'compass' || obj.type === 'rotator_mechanism' || obj.type === 'observer' || obj.type === 'button' || obj.type === 'dir_button' || obj.type === 'keyboard_button' || obj.type === 'cannon') continue;
                 let off = getOffset(obj.rotation);
                 let currentEmitColor = obj.lastSignalColor || 'red';
 
@@ -5404,6 +5453,11 @@
                 } else if (obj.type === 'button' || obj.type === 'dir_button') {
                     nextActive = (obj.buttonTicksLeft || 0) > 0;
                     if (nextActive) signalColor = 'yellow';
+                } else if (obj.type === 'cannon') {
+                    if ((obj.cannonCooldown || 0) > 0) obj.cannonCooldown--;
+                    nextActive = hasInput;
+                    if (nextActive && !obj.isActive) fireCannon(obj);
+                    if (nextActive) signalColor = 'red';
                 } else if (obj.type === 'siren') {
                     nextActive = hasInput;
                     if (nextActive) {
@@ -6358,6 +6412,7 @@
             wall: 'Стіна: нічого не пропускає і не рухається.',
             piston: 'Штовхає блок попереду при сигналі (дальність від кольору: жовтий — 2, зелений — 3, фіолет/чорн — далеко).',
             sticky_piston: 'Штовхає блок і затягує його назад, коли сигнал зникає.',
+            cannon: 'Гармата: по фронту сигналу вистрілює блок попереду вперед до перешкоди (дальність 2–12, перезарядка 5 тіків).',
             lever: 'Клік перемикає постійний сигнал вкл/викл.',
             transmitter: 'Шле сигнал по повітрю на приймач того самого каналу (1–99).',
             receiver: 'Ловить бездротовий сигнал зі свого каналу.',
