@@ -573,6 +573,7 @@
         <div class="mobile-row" style="margin-top:4px;">
             <button class="mob-btn mob-del-btn" id="mob-delete" title="Режим видалення">✕</button>
             <button class="mob-btn" id="mob-select" title="Виділення" style="background:rgba(33,150,243,0.85);border-color:#2196f3;">⬚</button>
+            <button class="mob-btn" id="mob-hands" title="Прибрати блок з рук (як Q)">✋</button>
         </div>
         <div class="mobile-row" style="margin-top:4px;">
             <button class="mob-btn mob-zoom-btn" id="mob-zoom-out" title="Зменшити">−</button>
@@ -1032,6 +1033,10 @@
             activeSlot = null;
             slots.forEach(s => s.classList.remove('active'));
             phantom.style.display = 'none';
+            document.getElementById('mob-hands')?.classList.add('active');
+        }
+        function markHandsFull() {
+            document.getElementById('mob-hands')?.classList.remove('active');
         }
 
         const RGB_SELECTOR_SVG = {
@@ -3602,6 +3607,10 @@
             container.style.cursor = _isDeleteMode ? 'crosshair' : 'grab';
         });
 
+        document.getElementById('mob-hands').addEventListener('click', () => {
+            clearHands();
+        });
+
         document.getElementById('mob-zoom-in').addEventListener('click', () => {
             const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
             const factor = 1.2;
@@ -4007,6 +4016,7 @@
         slots.forEach(s => s.addEventListener('click', () => {
             slots.forEach(slot => slot.classList.remove('active'));
             s.classList.add('active'); activeSlot = s; activeId = s.dataset.id;
+            markHandsFull();
             currentSvg = s.querySelector('svg').innerHTML;
             phantom.querySelector('svg').innerHTML = currentSvg; phantom.style.display = 'flex';
         }));
@@ -4038,6 +4048,7 @@
                 const inner = item.querySelector('svg').innerHTML;
                 activeSlot.querySelector('svg').innerHTML = inner; activeSlot.dataset.id = clickedId;
                 currentSvg = inner; activeId = clickedId;
+                markHandsFull();
                 phantom.querySelector('svg').innerHTML = inner; phantom.style.display = 'flex';
                 matrixPopup.style.display = 'none';
             });
