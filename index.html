@@ -885,11 +885,17 @@
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 }
-                dur = Math.max(0.1, Math.min(2, dur || 0.3));
+                dur = Math.max(0.1, Math.min(10, dur || 0.3));
                 const fire = () => {
+                    if ((waveType || 'piano') === 'piano') {
+                        const v = buildPianoVoice(freq, 0.14, dur);
+                        v.oscs.forEach(o => o.start());
+                        v.oscs.forEach(o => o.stop(audioCtx.currentTime + dur));
+                        return;
+                    }
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    osc.type = waveType || 'triangle';
+                    osc.type = waveType || 'piano';
                     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                     gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur * 0.95);
@@ -908,6 +914,27 @@
             }
         }
         // ==================== /НОТНИЙ БЛОК ====================
+        // Фортепіано: трикутний основний тон + тиха синусоїдна октава, різка атака + довге згасання
+        function buildPianoVoice(freq, peak, decayDur) {
+            const t = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            osc1.type = 'triangle';
+            osc1.frequency.setValueAtTime(freq, t);
+            const osc2 = audioCtx.createOscillator();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(freq * 2, t);
+            const harmGain = audioCtx.createGain();
+            harmGain.gain.setValueAtTime(0.3, t);
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(peak, t + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.05, decayDur * 0.98));
+            osc1.connect(gain);
+            osc2.connect(harmGain);
+            harmGain.connect(gain);
+            gain.connect(audioCtx.destination);
+            return { oscs: [osc1, osc2], gain };
+        }
         function startHeldNote(obj) {
             try {
                 if (!audioCtx) {
@@ -916,21 +943,30 @@
                 stopHeldNote(obj, 0.01);
                 const freq = MUSICAL_NOTES[obj.noteName] || obj.noteFreq || 440;
                 const maxDur = Math.max(0.1, Math.min(10, obj.noteDuration ?? 2));
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = obj.noteTimbre || 'triangle';
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.03);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const begin = () => { try { osc.start(); } catch (e) {} };
+                const timbre = obj.noteTimbre || 'piano';
+                let oscs, gain;
+                if (timbre === 'piano') {
+                    const v = buildPianoVoice(freq, 0.12, maxDur);
+                    oscs = v.oscs; gain = v.gain;
+                } else {
+                    const osc = audioCtx.createOscillator();
+                    gain = audioCtx.createGain();
+                    osc.type = timbre;
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.03);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    oscs = [osc];
+                }
+                const begin = () => { oscs.forEach(o => { try { o.start(); } catch (e) {} }); };
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume().then(begin);
                 } else {
                     begin();
                 }
-                obj._noteOsc = osc;
+                obj._noteOsc = oscs[0];
+                obj._noteOscExtra = oscs[1] || null;
                 obj._noteGain = gain;
                 obj._noteTimer = setTimeout(() => stopHeldNote(obj), maxDur * 1000 + 200);
             } catch (e) {
@@ -940,8 +976,8 @@
         function stopHeldNote(obj, release = 0.08) {
             try {
                 if (obj._noteTimer) { clearTimeout(obj._noteTimer); obj._noteTimer = null; }
-                const osc = obj._noteOsc, gain = obj._noteGain;
-                obj._noteOsc = null; obj._noteGain = null;
+                const osc = obj._noteOsc, extra = obj._noteOscExtra, gain = obj._noteGain;
+                obj._noteOsc = null; obj._noteOscExtra = null; obj._noteGain = null;
                 if (!osc || !audioCtx) return;
                 const t = audioCtx.currentTime;
                 if (gain) {
@@ -950,6 +986,7 @@
                     gain.gain.exponentialRampToValueAtTime(0.0001, t + release);
                 }
                 osc.stop(t + release + 0.05);
+                if (extra) { try { extra.stop(t + release + 0.05); } catch (e) {} }
             } catch (e) {}
         }
         // ==================== /УТРИМАННЯ НОТИ ====================
@@ -1509,7 +1546,7 @@
                     modalTitle.innerText = "Нотний Блок 🎵";
                     const curNote = clickedObj.noteName || 'DO';
                     const noteOpts = Object.keys(MUSICAL_NOTES).map(n => `<option value="${n}" ${curNote === n ? 'selected' : ''}>${n} (${MUSICAL_NOTES[n]} Гц)</option>`).join('');
-                    const curWave = clickedObj.noteTimbre || 'triangle';
+                    const curWave = clickedObj.noteTimbre || 'piano';
                     const curMode = clickedObj.noteMode || 'hold';
                     modalFields.innerHTML = `
                         <div class="modal-row">
@@ -1531,6 +1568,7 @@
                         <div class="modal-row">
                             <label>Тембр:</label>
                             <select id="cfg-note-timbre">
+                                <option value="piano" ${curWave === 'piano' ? 'selected' : ''}>Фортепіано 🎹</option>
                                 <option value="sine" ${curWave === 'sine' ? 'selected' : ''}>М'який (sine)</option>
                                 <option value="triangle" ${curWave === 'triangle' ? 'selected' : ''}>Флейта (triangle)</option>
                                 <option value="square" ${curWave === 'square' ? 'selected' : ''}>Різкий (square)</option>
@@ -2195,7 +2233,7 @@
                     extended: false, rgbChannel: 'red', channelValue: 255,
                     smokePercent: 45, tempVal: 25, humidityVal: 60, batteryCharge: 100,
                     rainPercent: 50, buzzerFreq: 880, sensitivity: 80,
-                    noteName: 'DO', noteFreq: 261.63, noteDuration: 2, noteTimbre: 'triangle', noteMode: 'hold',
+                    noteName: 'DO', noteFreq: 261.63, noteDuration: 2, noteTimbre: 'piano', noteMode: 'hold',
                     overchargeTicks: 0,
                     lastScanState: undefined,
                     repeaterDelay: 1, signalBuffer: [],
@@ -2577,7 +2615,7 @@
                     activeConfigTarget.noteMode = document.getElementById('cfg-note-mode').value || 'hold';
                     const dRaw = parseFloat(document.getElementById('cfg-note-dur').value);
                     activeConfigTarget.noteDuration = Math.max(0.1, Math.min(10, isNaN(dRaw) ? 2 : dRaw));
-                    activeConfigTarget.noteTimbre = document.getElementById('cfg-note-timbre').value || 'triangle';
+                    activeConfigTarget.noteTimbre = document.getElementById('cfg-note-timbre').value || 'piano';
                     const nBadge = activeConfigTarget.element.querySelector('.note-block-badge');
                     if (nBadge) nBadge.innerText = activeConfigTarget.noteName;
                 } else if (activeConfigTarget.type === 'seven_segment') {
@@ -2950,7 +2988,7 @@
                 smokePercent: saved.smokePercent ?? 45, tempVal: saved.tempVal ?? 25, humidityVal: saved.humidityVal ?? 60,
                 batteryCharge: saved.batteryCharge ?? 100,
                 rainPercent: saved.rainPercent ?? 50, buzzerFreq: saved.buzzerFreq ?? 880, sensitivity: saved.sensitivity ?? 80,
-                noteName: saved.noteName || 'DO', noteFreq: saved.noteFreq ?? 261.63, noteDuration: saved.noteDuration ?? 2, noteTimbre: saved.noteTimbre || 'triangle', noteMode: saved.noteMode || 'hold',
+                noteName: saved.noteName || 'DO', noteFreq: saved.noteFreq ?? 261.63, noteDuration: saved.noteDuration ?? 2, noteTimbre: saved.noteTimbre || 'piano', noteMode: saved.noteMode || 'hold',
                 overchargeTicks: 0,
                 lastScanState: undefined,
                 repeaterDelay: saved.repeaterDelay ?? 1, signalBuffer: [],
@@ -5258,14 +5296,14 @@
                             const now = performance.now();
                             if (!obj.isActive || (now - (obj._lastNoteTime || 0) >= durMs)) {
                                 const nFreq = MUSICAL_NOTES[obj.noteName] || obj.noteFreq || 440;
-                                playMusicalNote(nFreq, obj.noteDuration ?? 0.3, obj.noteTimbre || 'triangle');
+                                playMusicalNote(nFreq, obj.noteDuration ?? 0.3, obj.noteTimbre || 'piano');
                                 obj._lastNoteTime = now;
                             }
                         }
                     } else {
                         if (nextActive && !obj.isActive && isGameRunning) {
                             const nFreq = MUSICAL_NOTES[obj.noteName] || obj.noteFreq || 440;
-                            playMusicalNote(nFreq, obj.noteDuration ?? 0.3, obj.noteTimbre || 'triangle');
+                            playMusicalNote(nFreq, obj.noteDuration ?? 0.3, obj.noteTimbre || 'piano');
                         }
                     }
                     if (nextActive) signalColor = 'purple';
