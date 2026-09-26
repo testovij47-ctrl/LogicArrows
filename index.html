@@ -203,6 +203,28 @@
         .mp-close-btn:active { background: #333; }
         .mp-you { color: #4caf50; font-size:10px; margin-left:4px; }
 
+        #guide-modal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #1e375a; border: 3px solid #3b66c4; padding: 16px; border-radius: 12px;
+            z-index: 2000; width: 360px; max-width: 94vw; flex-direction: column; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: #fff;
+        }
+        #guide-search {
+            width: 100%; padding: 7px 10px; border: 2px solid #3b66c4; border-radius: 8px;
+            background: rgba(255,255,255,0.95); color: #1e375a; font-size: 13px;
+            outline: none; box-sizing: border-box;
+        }
+        #guide-search::placeholder { color: #7986cb; }
+        #guide-search:focus { border-color: #fbc02d; }
+        #guide-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        #guide-list::-webkit-scrollbar { width: 8px; }
+        #guide-list::-webkit-scrollbar-thumb { background: #3b66c4; border-radius: 8px; }
+        .guide-row { display: flex; gap: 8px; align-items: flex-start; background: rgba(255,255,255,0.07); padding: 6px 8px; border-radius: 8px; }
+        .guide-icon { width: 34px; height: 34px; background: #fff; border-radius: 6px; padding: 3px; flex-shrink: 0; }
+        .guide-icon svg { width: 100%; height: 100%; }
+        .guide-title { font-size: 12px; font-weight: bold; color: #fbc02d; }
+        .guide-desc { font-size: 11px; opacity: 0.92; line-height: 1.35; }
+
         #ui-wrapper { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 100; }
         #status-panel { background: rgba(26, 44, 80, 0.9); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
         .status-run { color: #4caf50; }
@@ -333,7 +355,7 @@
             .matrix-cell { width: 42px; }
             .matrix-item { width: 36px; height: 36px; }
 
-            #config-modal, #worlds-modal, #password-modal { width: 90vw !important; max-width: 300px; }
+            #config-modal, #worlds-modal, #password-modal, #guide-modal { width: 90vw !important; max-width: 360px; }
         }
 
         .projector-beam {
@@ -433,6 +455,7 @@
         <button class="time-toggle-btn" id="rain-toggle">🌧️ Дощ: ВИМК</button>
         <button class="time-toggle-btn" id="worlds-toggle">💾 Світи</button>
         <button class="time-toggle-btn" id="mp-toggle">🌐 Мультиплеєр</button>
+        <button class="time-toggle-btn" id="guide-toggle">📖 Гайд</button>
     </div>
 
     <div id="scene-container">
@@ -505,6 +528,13 @@
         <div id="mp-panel-title">🌐 Мультиплеєр</div>
         <div id="mp-panel-players"></div>
         <button class="mp-close-btn" id="mp-panel-close">Закрити кімнату</button>
+    </div>
+
+    <div id="guide-modal">
+        <h3 style="margin:0; font-size:14px; text-align:center;">📖 Гайд по деталях (<span id="guide-count"></span>)</h3>
+        <input type="text" id="guide-search" placeholder="Пошук деталі..." autocomplete="off">
+        <div id="guide-list"></div>
+        <button class="modal-btn" id="guide-close-btn" style="background:#555; color:#fff;">Закрити</button>
     </div>
 
     <div id="hints">
@@ -6285,6 +6315,182 @@
 
         window.addEventListener('beforeunload', () => { mpWsSend({ type:'leave_room' }); });
         // ==================== /МУЛЬТИПЛЕЄР ====================
+
+        // ==================== ГАЙД ПО ДЕТАЛЯХ ====================
+        const GUIDE_TEXT = {
+            arrow: 'Веде червоний сигнал прямо, куди повернута.',
+            repeater: 'Передає сигнал далі із затримкою 1–10 тіків (клік — налаштування).',
+            source: 'Постійне джерело червоного сигналу.',
+            battery: 'Живить схему; заряд у відсотках. Заряджається жовтим сигналом, від перезаряду вибухає.',
+            reed_switch: 'Пропускає сигнал, лише коли поруч є магніт.',
+            magnet: 'Вмикає геркони навколо себе.',
+            blocker: 'Глуха перешкода: сигнал далі не йде.',
+            split_f_b: 'Ділить сигнал вперед і назад.',
+            split_f_r: 'Ділить сигнал вперед і праворуч.',
+            split_3: 'Роздає сигнал на три сторони.',
+            pulse_gen: 'Щотіку видає короткий імпульс.',
+            detector: 'Спрацьовує, коли клітинка перед ним зайнята блоком.',
+            fast_arrow: 'Веде сигнал швидше за звичайну стрілку.',
+            blue_arrow: 'Веде синій сигнал окремим ланцюгом.',
+            diagonal: 'Веде сигнал по діагоналі.',
+            blue_split_2: 'Синій роздвоювач сигналу.',
+            blue_split_r: 'Синій розгалужувач з поворотом.',
+            blue_split_diag: 'Синій розгалужувач по діагоналі.',
+            gate_not: 'Логічне НЕ: вихід активний, коли входу нема.',
+            gate_and: 'Логічне І: треба сигнали мінімум з двох входів.',
+            gate_xor: 'Виключне АБО: спрацьовує лише від одного входу.',
+            gate_tri: 'RS-тригер: один вхід вмикає, інший вимикає, стан памʼятається.',
+            gate_t: 'Т-тригер: кожен імпульс перемикає стан.',
+            randomizer: 'Випадково пропускає або глушить сигнал.',
+            button: 'Клік з порожніми руками (Q) — імпульс в усі сторони; утримання 1–40 тіків (клік з блоком — налаштування).',
+            dir_button: 'Те саме, але сигнал лише у напрямку повороту.',
+            wall: 'Стіна: нічого не пропускає і не рухається.',
+            piston: 'Штовхає блок попереду при сигналі (дальність від кольору: жовтий — 2, зелений — 3, фіолет/чорн — далеко).',
+            sticky_piston: 'Штовхає блок і затягує його назад, коли сигнал зникає.',
+            lever: 'Клік перемикає постійний сигнал вкл/викл.',
+            transmitter: 'Шле сигнал по повітрю на приймач того самого каналу (1–99).',
+            receiver: 'Ловить бездротовий сигнал зі свого каналу.',
+            redstone_lamp: 'Світиться, поки є вхідний сигнал.',
+            rgb_selector: 'Видає сигнал обраного каналу R/G/B з рівнем 0–255.',
+            web_display: 'Піксель великого екрана: сусідні WD-блоки зливаються в дисплей з текстом.',
+            smoke_sensor: 'Віддає рівень диму (налаштовується, %), жовтий сигнал.',
+            dht_sensor: 'Віддає температуру і вологість (налаштовуються).',
+            am312_pir: 'Детектор руху: бачить зміни в лінії до 30 клітинок.',
+            servo: 'При сигналі ставить важіль на заданий кут 0–180°.',
+            seven_segment: 'Показує цифру 0–9; колір свічення — за кольором сигналу.',
+            slime_block: 'Слиз: поршні тягнуть зчеплені слиз-блоки разом.',
+            slime_block_h: 'Горизонтальний слизовий модуль для поршневих рядів.',
+            slime_block_v: 'Вертикальний слизовий модуль для поршневих колон.',
+            honey_block: 'Мед: липне до сусідів, зчіплює конструкцію.',
+            buzzer: 'Пищить із заданою частотою, поки є сигнал (клік — налаштування).',
+            note_block: 'Грає ноту DO–DO2 (є фортепіано); режими: тягнути / раз / повтор.',
+            rain_sensor: 'Віддає рівень опадів; реагує на дощ.',
+            tilt_sensor: 'Спрацьовує від нахилу і струсу з заданою чутливістю.',
+            rotator_mechanism: 'По фронту сигналу повертає сусідні блоки на 90°.',
+            keyboard_button: 'Видає імпульс при натисканні призначеної клавіші (клік — вибрати клавішу).',
+            light_sensor: 'Спрацьовує вдень або вночі — на вибір.',
+            color_comparator: 'Пропускає далі лише сигнал обраного кольору.',
+            controlled_magnet: 'Електромагніт: працює лише поки є сигнал.',
+            siren: 'Виє зі стрибками частоти і блимає червоним/жовтим.',
+            birthday_chip: 'По фронту сигналу грає мелодію «Happy Birthday».',
+            custom_piston: 'Поршень з вибором форми головки (клік — налаштування).',
+            custom_sticky_piston: 'Липкий поршень з вибором форми головки.',
+            countdown_timer: 'Відлік N секунд від сигналу, потім імпульс.',
+            password_terminal: 'Видає зелений сигнал за правильний код (клік — ввести/змінити).',
+            pattern_scanner: 'Кодовий замок: звіряє сусідів N/E/S/W із шаблоном.',
+            gravity_block: 'Падає вниз, якщо під ним порожньо.',
+            morse_module: 'Вистукує заданий текст азбукою Морзе.',
+            analog_clock: 'Показує реальний час стрілками.',
+            windmill: 'Крутиться від сигналу; швидкість — від рівня каналу.',
+            solar_panel: 'Живить вдень; потужність залежить від години.',
+            salt_battery: 'Нічний акумулятор: вдень заряджається, вночі живить.',
+            thermostat: 'Спрацьовує, коли температура вище/нижче порога (треба датчик).',
+            pulse_counter: 'Рахує імпульси і спрацьовує на N-му.',
+            diode: 'Пропускає сигнал лише вперед, назад — ні.',
+            mirror: 'Відбиває сигнал назад туди, звідки він прийшов.',
+            alarm_clock_trigger: 'Імпульс щодня у заданий час за реальним годинником.',
+            numeric_comparator: 'Порівнює рівень каналу з порогом: більше, менше або дорівнює.',
+            color_converter: 'Перефарбовує будь-який вхід в обраний колір.',
+            latch_off_delay: 'Тримає вихід увімкненим ще N секунд після зникнення входу.',
+            smart_router: 'Розсилає кольори по різних напрямках (таблиця в налаштуваннях).',
+            gate_xnor: 'XNOR: вихід активний, коли входи однакові.',
+            bar_gauge: 'Стовпчик показує рівень сигналу 0–255.',
+            balance_scale: 'Зважує сигнали з 4 сторін, виводить підсумок.',
+            stopwatch: 'Міряє, скільки тіків тримається сигнал, показує секунди.',
+            frequency_divider: 'Пропускає кожен N-й імпульс, решту глушить.',
+            radar_scanner: 'Сканує 15 клітинок у 4 сторони, реагує на зміни.',
+            hover_detector: 'Активний, поки курсор миші над ним.',
+            teleporter: 'Перекидає сигнал на парний телепорт того самого каналу.',
+            compass: 'Стрілка крутиться до найближчого активного блока.',
+            second_clock: 'Імпульс кожну парну секунду реального часу.',
+            observer: 'Дає імпульс назад, коли блок попереду змінився.',
+            signal_clamp: 'Ріже рівень каналу в межі мінімум–максимум.',
+            cuckoo_clock: 'Кує (пищить) кожну рівну годину.',
+            nfc_module: 'Міняється сигналами із сусіднім NFC того самого каналу (1 клітинка).',
+            projector: 'Світить кольоровим променем заданої довжини, видно вночі.',
+            particle_gen: 'Іскри, дим, вогонь або конфетті при сигналі + сигнал в усі сторони.',
+            rain_shield: 'Парасолька: ховає стовпчик блоків під собою від дощу.',
+            delay_timer: 'Чекає N тіків від сигналу і лише потім спрацьовує.',
+            torch: 'Вічний вогонь: світло і червоний сигнал в усі сторони.',
+            dynamite: 'Через 3 тіки після сигналу вибухає і зносить блоки поруч.',
+            fog_gen: 'Накриває область густим туманом (декор).',
+            elevator: 'Піднімає блоки знизу вгору на задану довжину.',
+            encryptor: 'Зсуває рівень каналу на секретний код.',
+            decoder: 'Знімає шифр тим самим кодом.',
+            freq_comparator: 'Спрацьовує, коли частота імпульсів збігається із заданою.',
+            multiplexer: 'Збирає кілька входів в один вихід.',
+            demultiplexer: 'Розводить один вхід на кілька виходів.',
+            signal_ram: 'Комірка памʼяті: памʼятає рівень сигналу.',
+            ram: 'Таран: при сигналі бʼє вперед по перешкодах.',
+            winch: 'Лебідка: підтягує блок позаду ближче (до 2 клітинок).',
+            lift_bridge: 'Підйомний міст: піднімає конструкцію на 3 клітинки вгору.',
+            conveyor: 'Конвеєр: посунує блок ззаду наперед кожне спрацювання.',
+            mag_winch: 'Магнітна лебідка: тягне електроблоки (батареї, передатчики) з 4 клітинок.',
+            signal_filter: 'Фільтр лінії: вирівнює і передає сигнал далі.',
+            trans_display: 'Напівпрозорий піксель дисплея: крізь нього видно блоки.',
+            led_strip: '8 діодів показують рівень каналу у двійковому вигляді.',
+            projector_beam: 'Далекобійний промінь: шле сигнал на N клітинок вперед.',
+            laser_pointer: 'Бʼє червоним лазером до 20 клітинок, цілить у перший блок на лінії.',
+            light_barrier: 'Світловий барʼєр: ловить перетин променя.',
+            glass_block: 'Скло: пропускає сигнали і промені, тримає форму.',
+            ir_transmitter: 'ІЧ-передатчик: роздає зелений сигнал в усі сторони.',
+            repeater_block: 'Ретранслятор: підсилює сигнал у напрямку повороту.',
+            antenna: 'Антена: випромінює жовтий сигнал за поворотом.',
+            signal_delay: 'Буфер: затримує сигнал на N тіків.',
+            mirror_wall: 'Дзеркальна стіна: проводить сигнал і відбиває промені.',
+            encrypted_wall: 'Броньована стіна: проводить сигнал, коли активна.',
+            protected_block: 'Захищений блок: проводить сигнал, не боїться дощу і вибухів.',
+            energy_shield: 'Енергощит: прикриває по 3 блоки ліворуч і праворуч.',
+            proximity_sensor: 'Чує блоки і рух у заданому радіусі.',
+            timed_switch: 'Сам клацає вкл/викл кожні N секунд.',
+            pressure_plate: 'Плита: тиснуть сусідні активні блоки, поршні і падаючі блоки.',
+            seismograph: 'Реагує на тряску карти (перетягування).'
+        };
+        function renderGuideList(filter = '') {
+            const listEl = document.getElementById('guide-list');
+            listEl.innerHTML = '';
+            const q = (filter || '').trim().toLowerCase();
+            let count = 0;
+            document.querySelectorAll('#matrix-popup .matrix-cell').forEach(cell => {
+                const item = cell.querySelector('.matrix-item');
+                if (!item || !item.dataset.id || item.dataset.id.includes('$')) return;
+                const type = item.dataset.id;
+                const titleEl = cell.querySelector('.block-title');
+                const title = titleEl ? titleEl.textContent.trim() : type;
+                const svgEl = item.querySelector('svg');
+                const desc = GUIDE_TEXT[type] || 'Клікни по блоку на карті, щоб побачити його налаштування.';
+                if (q && !(title.toLowerCase().includes(q) || desc.toLowerCase().includes(q) || type.includes(q))) return;
+                count++;
+                const row = document.createElement('div');
+                row.className = 'guide-row';
+                const icon = document.createElement('div');
+                icon.className = 'guide-icon';
+                if (svgEl) icon.innerHTML = `<svg viewBox="0 0 24 24">${svgEl.innerHTML}</svg>`;
+                const body = document.createElement('div');
+                const t = document.createElement('div');
+                t.className = 'guide-title';
+                t.textContent = title;
+                const d = document.createElement('div');
+                d.className = 'guide-desc';
+                d.textContent = desc;
+                body.appendChild(t); body.appendChild(d);
+                row.appendChild(icon); row.appendChild(body);
+                listEl.appendChild(row);
+            });
+            document.getElementById('guide-count').innerText = count;
+        }
+        document.getElementById('guide-toggle').addEventListener('click', () => {
+            const gs = document.getElementById('guide-search');
+            gs.value = '';
+            renderGuideList('');
+            document.getElementById('guide-modal').style.display = 'flex';
+            gs.focus();
+        });
+        document.getElementById('guide-search').addEventListener('input', (e) => renderGuideList(e.target.value));
+        document.getElementById('guide-close-btn').addEventListener('click', () => {
+            document.getElementById('guide-modal').style.display = 'none';
+        });
+        // ==================== /ГАЙД ====================
 
         startGameLoop();
 
