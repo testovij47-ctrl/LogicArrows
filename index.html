@@ -511,7 +511,7 @@
         <div>• <span class="kbd">ЛКМ Затиснути</span> Перетягувати карту</div>
         <div>• <span class="kbd">ЛКМ Клік</span> Встановити / Взаємодіяти з блоком</div>
         <div>• <span class="kbd">ПКМ</span> Видалити блок | <span class="kbd">Пробіл</span> Пауза</div>
-        <div>• <span class="kbd">W/A/S/D</span> Обертання | <span class="kbd">E</span> Виділення</div>
+        <div>• <span class="kbd">W/A/S/D</span> Обертання | <span class="kbd">E</span> Виділення | <span class="kbd">Q</span> Прибрати блок з рук</div>
         <div>• <span class="kbd">ПКМ Затиснути</span> Виділити конструкцію (режим E)</div>
         <div>• <span class="kbd">Ctrl+C/X/V</span> Copy/Cut/Paste | <span class="kbd">Del</span> Видалити виділене</div>
     </div>
@@ -995,6 +995,13 @@
             obj.buttonTicksLeft = obj.buttonHoldTicks ?? 1;
             obj.manualTrigger = true;
             doGameTick();
+        }
+        // Q: прибрати блок з рук (режим гри: клік по кнопці одразу натискає, без налаштувань)
+        function clearHands() {
+            activeId = null;
+            activeSlot = null;
+            slots.forEach(s => s.classList.remove('active'));
+            phantom.style.display = 'none';
         }
 
         const RGB_SELECTOR_SVG = {
@@ -2168,6 +2175,7 @@
                     return;
                 }
                 if (clickedObj.type === 'button' || clickedObj.type === 'dir_button') {
+                    if (!activeId) { pressButton(clickedObj); return; }
                     activeConfigTarget = clickedObj;
                     const isDir = clickedObj.type === 'dir_button';
                     modalTitle.innerText = isDir ? "Направлена Кнопка" : "Кнопка";
@@ -2176,7 +2184,7 @@
                             <label>Утримання (тіків):</label>
                             <input type="number" id="cfg-btn-hold" min="1" max="40" value="${clickedObj.buttonHoldTicks ?? 1}">
                         </div>
-                        <div class="modal-row" style="font-size:10px; opacity:0.75;">${isDir ? 'Сигнал іде у напрямку повороту.' : 'Сигнал іде в усі 4 сторони.'} 1 тік ≈ 0.2 сек. Після натискання кнопка тримає сигнал N тіків.</div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">${isDir ? 'Сигнал іде у напрямку повороту.' : 'Сигнал іде в усі 4 сторони.'} 1 тік ≈ 0.2 сек. Порада: з порожніми руками (Q) клік одразу натискає кнопку.</div>
                         <div class="modal-row"><button id="cfg-btn-press" style="width:100%;padding:6px;cursor:pointer;">🔘 Натиснути</button></div>
                     `;
                     configModal.style.display = 'flex';
@@ -3962,6 +3970,7 @@
             }
             if (e.key === 'Delete') { deleteSelected(); return; }
             if (e.key === 'Escape') { clearSelection(); if (_selectMode) toggleSelectMode(); }
+            if (e.code === 'KeyQ') { clearHands(); return; }
         });
         // ==================== /ВИДІЛЕННЯ КОНСТРУКЦІЙ ====================
 
