@@ -71,7 +71,7 @@
         .energy-shield-cell svg { filter: drop-shadow(0 0 4px #4fc3f7); }
         @keyframes conveyor-anim { 0%{background-position:0 0} 100%{background-position:20px 0} }
 
-        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge, .encryptor-badge, .decoder-badge, .freq-comp-badge, .mux-badge, .demux-badge, .ram-badge, .led-badge, .proj-beam-badge, .signal-delay-badge, .timer-switch-badge, .prox-badge, .seismo-badge, .sync-badge, .mag-winch-badge, .freq-filter-badge, .conveyor-badge, .note-block-badge, .button-hold-badge, .cannon-badge {
+        .battery-level-badge, .repeater-delay-badge, .servo-angle-badge, .seven-seg-badge, .rain-sensor-badge, .tilt-sensor-badge, .keyboard-btn-badge, .light-sensor-badge, .color-comparator-badge, .countdown-badge, .salt-battery-badge, .thermostat-badge, .pulse-counter-badge, .alarm-clock-badge, .numeric-comparator-badge, .color-converter-badge, .latch-off-badge, .stopwatch-badge, .freq-div-badge, .signal-clamp-badge, .timer-badge, .elevator-badge, .dynamite-badge, .fog-badge, .encryptor-badge, .decoder-badge, .freq-comp-badge, .mux-badge, .demux-badge, .ram-badge, .led-badge, .proj-beam-badge, .signal-delay-badge, .timer-switch-badge, .prox-badge, .seismo-badge, .sync-badge, .mag-winch-badge, .freq-filter-badge, .conveyor-badge, .note-block-badge, .button-hold-badge, .cannon-badge, .rgb-lamp-badge {
             position: absolute; top: 1px; right: 1px;
             font-size: 7px; font-weight: bold; color: #fff;
             background: rgba(0,0,0,0.7); padding: 0 2px; border-radius: 2px;
@@ -116,25 +116,25 @@
 
         .blocked { opacity: 0.25; filter: grayscale(1); }
 
-        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg path, 
-        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg circle, 
-        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg rect { fill: #ff1744 !important; stroke: #ff1744 !important; }
-        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg line { stroke: #ff1744 !important; }
+        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg path, 
+        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg circle, 
+        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg rect { fill: #ff1744 !important; stroke: #ff1744 !important; }
+        .active-red:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg line { stroke: #ff1744 !important; }
         
-        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg path, 
-        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg circle, 
-        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg rect { fill: #4caf50 !important; stroke: #4caf50 !important; }
-        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg line { stroke: #4caf50 !important; }
+        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg path, 
+        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg circle, 
+        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg rect { fill: #4caf50 !important; stroke: #4caf50 !important; }
+        .active-green:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg line { stroke: #4caf50 !important; }
         
-        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg path, 
-        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg circle, 
-        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg rect { fill: #2196f3 !important; stroke: #2196f3 !important; }
-        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg line { stroke: #2196f3 !important; }
+        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg path, 
+        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg circle, 
+        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg rect { fill: #2196f3 !important; stroke: #2196f3 !important; }
+        .active-blue:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg line { stroke: #2196f3 !important; }
         
-        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg path, 
-        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg circle, 
-        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg rect { fill: #ffea00 !important; stroke: #ffea00 !important; }
-        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block) svg line { stroke: #ffea00 !important; }
+        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg path, 
+        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg circle, 
+        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg rect { fill: #ffea00 !important; stroke: #ffea00 !important; }
+        .active-yellow:not(.rgb-selector-block):not(.servo-block):not(.seven-seg-block):not(.buzzer-block):not(.note-block):not(.rgb-lamp-block) svg line { stroke: #ffea00 !important; }
 
         body.night .grid-object:not([class*="active-"]):not(.web-display-block) svg path { opacity: 0.7; }
 
@@ -633,6 +633,7 @@
             <div class="matrix-row">
                 <div class="matrix-cell"><div class="matrix-item" data-id="receiver"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="#152e4a" stroke="#2196f3" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="#2196f3" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#fff"/></svg></div><div class="block-title">Приймач</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="redstone_lamp"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#3a2214" stroke="#5c3826" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#24130a"/></svg></div><div class="block-title">Лампа</div></div>
+                <div class="matrix-cell"><div class="matrix-item" data-id="rgb_lamp"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3" fill="#241a12" stroke="#ff1744" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#4a1515"/></svg></div><div class="block-title">RGB Лампа</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="rgb_selector"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="#222" stroke="#666" stroke-width="2"/><rect x="5" y="5" width="4" height="14" fill="#e53935"/><rect x="10" y="5" width="4" height="14" fill="#4caf50"/><rect x="15" y="5" width="4" height="14" fill="#1e88e5"/><circle cx="12" cy="12" r="3" fill="#fff" stroke="#000" stroke-width="1"/></svg></div><div class="block-title">Канал RGB</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="web_display"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" fill="#111" stroke="#555" stroke-width="2"/><text x="4" y="14" fill="#555" font-size="7" font-weight="bold">WD 1x1</text></svg></div><div class="block-title">Блок Дисплея</div></div>
                 <div class="matrix-cell"><div class="matrix-item" data-id="smoke_sensor"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4" fill="#333" stroke="#ff9800" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#555"/><path d="M12 8c-2 0-3 1.5-3 3s2 2.5 3 3.5 1 2 0 3" stroke="#ffa726" stroke-width="1.5" fill="none"/></svg></div><div class="block-title">Датчик диму</div></div>
@@ -1066,6 +1067,21 @@
         };
 
         const SERVO_SVG = `<rect x="3" y="3" width="18" height="18" rx="3" fill="#1e272c" stroke="#00bcd4" stroke-width="2"/><circle cx="12" cy="12" r="7" fill="#37474f"/><circle cx="12" cy="12" r="2" fill="#ffffff"/><g class="servo-arm"><path d="M12 12 L12 4 L14 7 L10 7 Z" fill="#ff9800"/></g>`;
+        // ==================== RGB-ЛАМПА (колір з налаштувань) ====================
+        const RGB_LAMP_PARTS = {
+            red: { bulb: '#ff5252', dim: '#4a1515', stroke: '#ff1744', light: [255, 70, 70] },
+            green: { bulb: '#69f0ae', dim: '#1b3a24', stroke: '#4caf50', light: [90, 255, 150] },
+            blue: { bulb: '#64b5f6', dim: '#152e4a', stroke: '#2196f3', light: [110, 190, 255] },
+            yellow: { bulb: '#ffea00', dim: '#4a3f10', stroke: '#fbc02d', light: [255, 235, 150] },
+            purple: { bulb: '#ea80fc', dim: '#3a1b4a', stroke: '#ab47bc', light: [220, 130, 255] }
+        };
+        const RGB_LAMP_BADGE = { red: 'R', green: 'G', blue: 'B', yellow: 'Y', purple: 'P' };
+        function generateRgbLampSVG(color, lit) {
+            const p = RGB_LAMP_PARTS[color] || RGB_LAMP_PARTS.red;
+            const glow = lit ? `<circle cx="12" cy="12" r="9" fill="${p.bulb}" opacity="0.3"/>` : '';
+            return `<rect x="2" y="2" width="20" height="20" rx="3" fill="#241a12" stroke="${p.stroke}" stroke-width="2"/>${glow}<circle cx="12" cy="12" r="6" fill="${lit ? p.bulb : p.dim}"/>`;
+        }
+        // ==================== /RGB-ЛАМПА ====================
         const BUZZER_SVG = `<rect x="3" y="3" width="18" height="18" rx="4" fill="#212121" stroke="#f44336" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#424242"/><circle cx="12" cy="12" r="2" fill="#111"/><path d="M16 8l3-3M16 16l3 3M8 8L5 5M8 16l-3 3" stroke="#f44336" stroke-width="1.5" stroke-linecap="round"/>`;
         const RAIN_SENSOR_SVG = `<rect x="3" y="3" width="18" height="18" rx="4" fill="#0d47a1" stroke="#2196f3" stroke-width="2"/><path d="M7 7h10M7 11h10M7 15h10" stroke="#90caf9" stroke-width="1.5" stroke-linecap="round"/><path d="M8 19c0 .8.7 1.5 1.5 1.5s1.5-.7 1.5-1.5c0-.8-1.5-2.5-1.5-2.5S8 18.2 8 19z" fill="#64b5f6"/>`;
 
@@ -1294,15 +1310,18 @@
             for (let key in gridObjects) {
                 let obj = gridObjects[key];
                 
-                if (obj.type === 'redstone_lamp' && obj.isActive) {
+                if ((obj.type === 'redstone_lamp' || obj.type === 'rgb_lamp') && obj.isActive) {
                     let centerX = (obj.x * CELL_SIZE) + camX + (CELL_SIZE / 2);
                     let centerY = (obj.y * CELL_SIZE) + camY + (CELL_SIZE / 2);
                     let lightRadius = CELL_SIZE * 2.5; 
+                    const lampRGB = obj.type === 'rgb_lamp'
+                        ? ((RGB_LAMP_PARTS[obj.lampColor] || RGB_LAMP_PARTS.red).light)
+                        : [255, 240, 150];
 
                     let gradient = ctxLight.createRadialGradient(centerX, centerY, CELL_SIZE / 2, centerX, centerY, lightRadius);
-                    gradient.addColorStop(0, "rgba(255, 255, 255, 1.0)");
-                    gradient.addColorStop(0.5, "rgba(255, 240, 150, 0.4)");
-                    gradient.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+                    gradient.addColorStop(0, `rgba(${lampRGB[0]}, ${lampRGB[1]}, ${lampRGB[2]}, 1.0)`);
+                    gradient.addColorStop(0.5, `rgba(${lampRGB[0]}, ${lampRGB[1]}, ${lampRGB[2]}, 0.4)`);
+                    gradient.addColorStop(1, `rgba(${lampRGB[0]}, ${lampRGB[1]}, ${lampRGB[2]}, 0.0)`);
 
                     ctxLight.save(); ctxLight.globalCompositeOperation = 'destination-out';
                     ctxLight.fillStyle = gradient; ctxLight.beginPath();
@@ -1618,6 +1637,23 @@
                             <input type="number" id="cfg-cannon-range" min="2" max="12" value="${clickedObj.cannonRange ?? 6}">
                         </div>
                         <div class="modal-row" style="font-size:10px; opacity:0.75;">По фронту сигналу вистрілює блок попереду вперед до перешкоди. Перезарядка 5 тіків.</div>
+                    `;
+                    configModal.style.display = 'flex';
+                    return;
+                }
+
+                if (clickedObj.type === 'rgb_lamp') {
+                    activeConfigTarget = clickedObj;
+                    modalTitle.innerText = "RGB Лампа";
+                    const curLamp = clickedObj.lampColor || 'red';
+                    const lampOpts = [['red', 'Червоний'], ['green', 'Зелений'], ['blue', 'Синій'], ['yellow', 'Жовтий'], ['purple', 'Фіолетовий']]
+                        .map(([v, n]) => `<option value="${v}" ${curLamp === v ? 'selected' : ''}>${n}</option>`).join('');
+                    modalFields.innerHTML = `
+                        <div class="modal-row">
+                            <label>Колір світла:</label>
+                            <select id="cfg-lamp-color">${lampOpts}</select>
+                        </div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Світиться обраним кольором, поки є вхідний сигнал; вночі освітлює навколо.</div>
                     `;
                     configModal.style.display = 'flex';
                     return;
@@ -2317,6 +2353,9 @@
                 } else if (activeId === 'buzzer') {
                     initialSvg = BUZZER_SVG;
                     div.classList.add('buzzer-block');
+                } else if (activeId === 'rgb_lamp') {
+                    initialSvg = generateRgbLampSVG('red', false);
+                    div.classList.add('rgb-lamp-block');
                 } else if (activeId === 'note_block') {
                     initialSvg = NOTE_BLOCK_SVG;
                     div.classList.add('note-block');
@@ -2336,6 +2375,7 @@
                     leverToggled: false, lastSignalColor: 'red', frequency: 1,
                     buttonHoldTicks: 1, buttonTicksLeft: 0,
                     cannonRange: 6, cannonCooldown: 0,
+                    lampColor: 'red',
                     extended: false, rgbChannel: 'red', channelValue: 255,
                     smokePercent: 45, tempVal: 25, humidityVal: 60, batteryCharge: 100,
                     rainPercent: 50, buzzerFreq: 880, sensitivity: 80,
@@ -2398,6 +2438,13 @@
                     const badge = document.createElement('div');
                     badge.className = 'cannon-badge';
                     badge.innerText = '➤6';
+                    div.appendChild(badge);
+                }
+
+                if (activeId === 'rgb_lamp') {
+                    const badge = document.createElement('div');
+                    badge.className = 'rgb-lamp-badge';
+                    badge.innerText = 'R';
                     div.appendChild(badge);
                 }
 
@@ -2731,6 +2778,14 @@
                     activeConfigTarget.cannonRange = Math.max(2, Math.min(12, parseInt(document.getElementById('cfg-cannon-range').value) || 6));
                     const cBadge = activeConfigTarget.element.querySelector('.cannon-badge');
                     if (cBadge) cBadge.innerText = `➤${activeConfigTarget.cannonRange}`;
+                } else if (activeConfigTarget.type === 'rgb_lamp') {
+                    const picked = document.getElementById('cfg-lamp-color').value;
+                    activeConfigTarget.lampColor = RGB_LAMP_PARTS[picked] ? picked : 'red';
+                    const svgEl = activeConfigTarget.element.querySelector('svg');
+                    if (svgEl) svgEl.innerHTML = generateRgbLampSVG(activeConfigTarget.lampColor, !!activeConfigTarget.isActive);
+                    activeConfigTarget._lampLit = undefined;
+                    const lBadge = activeConfigTarget.element.querySelector('.rgb-lamp-badge');
+                    if (lBadge) lBadge.innerText = RGB_LAMP_BADGE[activeConfigTarget.lampColor] || 'R';
                 } else if (activeConfigTarget.type === 'note_block') {
                     const nSel = document.getElementById('cfg-note-name');
                     const picked = nSel ? nSel.value : 'DO';
@@ -3010,6 +3065,7 @@
                     leverToggled: o.leverToggled, frequency: o.frequency,
                     buttonHoldTicks: o.buttonHoldTicks,
                     cannonRange: o.cannonRange,
+                    lampColor: o.lampColor,
                     rgbChannel: o.rgbChannel, channelValue: o.channelValue,
                     smokePercent: o.smokePercent, tempVal: o.tempVal, humidityVal: o.humidityVal,
                     batteryCharge: o.batteryCharge, rainPercent: o.rainPercent, buzzerFreq: o.buzzerFreq,
@@ -3092,6 +3148,9 @@
             } else if (type === 'buzzer') {
                 initialSvg = BUZZER_SVG;
                 div.classList.add('buzzer-block');
+            } else if (type === 'rgb_lamp') {
+                initialSvg = generateRgbLampSVG(saved.lampColor || 'red', false);
+                div.classList.add('rgb-lamp-block');
             } else if (type === 'note_block') {
                 initialSvg = NOTE_BLOCK_SVG;
                 div.classList.add('note-block');
@@ -3116,6 +3175,7 @@
                 leverToggled: saved.leverToggled || false, lastSignalColor: 'red', frequency: saved.frequency ?? 1,
                 buttonHoldTicks: saved.buttonHoldTicks ?? 1, buttonTicksLeft: 0,
                 cannonRange: saved.cannonRange ?? 6, cannonCooldown: 0,
+                lampColor: saved.lampColor || 'red',
                 extended: false, rgbChannel: saved.rgbChannel || 'red', channelValue: saved.channelValue ?? 255,
                 smokePercent: saved.smokePercent ?? 45, tempVal: saved.tempVal ?? 25, humidityVal: saved.humidityVal ?? 60,
                 batteryCharge: saved.batteryCharge ?? 100,
@@ -3189,6 +3249,7 @@
             if (type === 'seven_segment') { const b = document.createElement('div'); b.className = 'seven-seg-badge'; b.innerText = `${go.displayDigit}`; div.appendChild(b); }
             if (type === 'button' || type === 'dir_button') { const b = document.createElement('div'); b.className = 'button-hold-badge'; b.innerText = `${go.buttonHoldTicks ?? 1}T`; div.appendChild(b); }
             if (type === 'cannon') { const b = document.createElement('div'); b.className = 'cannon-badge'; b.innerText = `➤${go.cannonRange ?? 6}`; div.appendChild(b); }
+            if (type === 'rgb_lamp') { const b = document.createElement('div'); b.className = 'rgb-lamp-badge'; b.innerText = RGB_LAMP_BADGE[go.lampColor] || 'R'; div.appendChild(b); }
             if (type === 'note_block') { const b = document.createElement('div'); b.className = 'note-block-badge'; b.innerText = `${go.noteName || 'DO'}`; div.appendChild(b); }
             if (type === 'rain_sensor') { const b = document.createElement('div'); b.className = 'rain-sensor-badge'; b.innerText = `${go.rainPercent}%`; div.appendChild(b); }
             if (type === 'tilt_sensor') { const b = document.createElement('div'); b.className = 'tilt-sensor-badge'; b.innerText = `${go.sensitivity}%`; div.appendChild(b); }
@@ -5458,6 +5519,16 @@
                     nextActive = hasInput;
                     if (nextActive && !obj.isActive) fireCannon(obj);
                     if (nextActive) signalColor = 'red';
+                } else if (obj.type === 'rgb_lamp') {
+                    nextActive = hasInput;
+                    const lampCol = obj.lampColor || 'red';
+                    if (nextActive) signalColor = lampCol;
+                    if (obj._lampLit !== nextActive || obj._lampColShown !== lampCol) {
+                        const lampSvg = obj.element.querySelector('svg');
+                        if (lampSvg) lampSvg.innerHTML = generateRgbLampSVG(lampCol, nextActive);
+                        obj._lampLit = nextActive;
+                        obj._lampColShown = lampCol;
+                    }
                 } else if (obj.type === 'siren') {
                     nextActive = hasInput;
                     if (nextActive) {
@@ -6417,6 +6488,7 @@
             transmitter: 'Шле сигнал по повітрю на приймач того самого каналу (1–99).',
             receiver: 'Ловить бездротовий сигнал зі свого каналу.',
             redstone_lamp: 'Світиться, поки є вхідний сигнал.',
+            rgb_lamp: 'RGB-лампа: світиться обраним у налаштуваннях кольором, поки є сигнал; вночі освітлює навколо.',
             rgb_selector: 'Видає сигнал обраного каналу R/G/B з рівнем 0–255.',
             web_display: 'Піксель великого екрана: сусідні WD-блоки зливаються в дисплей з текстом.',
             smoke_sensor: 'Віддає рівень диму (налаштовується, %), жовтий сигнал.',
