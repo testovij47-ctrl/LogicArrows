@@ -1069,17 +1069,23 @@
         const SERVO_SVG = `<rect x="3" y="3" width="18" height="18" rx="3" fill="#1e272c" stroke="#00bcd4" stroke-width="2"/><circle cx="12" cy="12" r="7" fill="#37474f"/><circle cx="12" cy="12" r="2" fill="#ffffff"/><g class="servo-arm"><path d="M12 12 L12 4 L14 7 L10 7 Z" fill="#ff9800"/></g>`;
         // ==================== RGB-ЛАМПА (колір з налаштувань) ====================
         const RGB_LAMP_PARTS = {
-            red: { bulb: '#ff5252', dim: '#4a1515', stroke: '#ff1744', light: [255, 70, 70] },
-            green: { bulb: '#69f0ae', dim: '#1b3a24', stroke: '#4caf50', light: [90, 255, 150] },
-            blue: { bulb: '#64b5f6', dim: '#152e4a', stroke: '#2196f3', light: [110, 190, 255] },
-            yellow: { bulb: '#ffea00', dim: '#4a3f10', stroke: '#fbc02d', light: [255, 235, 150] },
-            purple: { bulb: '#ea80fc', dim: '#3a1b4a', stroke: '#ab47bc', light: [220, 130, 255] }
+            red: { bulb: '#ff5252', dim: '#4a1515', stroke: '#ff1744', light: [255, 70, 70], hex: '#ff5252' },
+            green: { bulb: '#69f0ae', dim: '#1b3a24', stroke: '#4caf50', light: [90, 255, 150], hex: '#69f0ae' },
+            blue: { bulb: '#64b5f6', dim: '#152e4a', stroke: '#2196f3', light: [110, 190, 255], hex: '#64b5f6' },
+            yellow: { bulb: '#ffea00', dim: '#4a3f10', stroke: '#fbc02d', light: [255, 235, 150], hex: '#ffea00' },
+            purple: { bulb: '#ea80fc', dim: '#3a1b4a', stroke: '#ab47bc', light: [220, 130, 255], hex: '#ea80fc' }
         };
         const RGB_LAMP_BADGE = { red: 'R', green: 'G', blue: 'B', yellow: 'Y', purple: 'P' };
-        function generateRgbLampSVG(color, lit) {
+        function hexToRgbArr(hex) {
+            const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+            if (!m) return null;
+            return [parseInt(m[1].slice(0, 2), 16), parseInt(m[1].slice(2, 4), 16), parseInt(m[1].slice(4, 6), 16)];
+        }
+        function generateRgbLampSVG(color, lit, customHex) {
             const p = RGB_LAMP_PARTS[color] || RGB_LAMP_PARTS.red;
-            const glow = lit ? `<circle cx="12" cy="12" r="9" fill="${p.bulb}" opacity="0.3"/>` : '';
-            return `<rect x="2" y="2" width="20" height="20" rx="3" fill="#241a12" stroke="${p.stroke}" stroke-width="2"/>${glow}<circle cx="12" cy="12" r="6" fill="${lit ? p.bulb : p.dim}"/>`;
+            const glowCol = hexToRgbArr(customHex) ? customHex : p.bulb;
+            const glow = lit ? `<circle cx="12" cy="12" r="9" fill="${glowCol}" opacity="0.3"/>` : '';
+            return `<rect x="2" y="2" width="20" height="20" rx="3" fill="#241a12" stroke="${p.stroke}" stroke-width="2"/>${glow}<circle cx="12" cy="12" r="6" fill="${lit ? glowCol : p.dim}"/>`;
         }
         // ==================== /RGB-ЛАМПА ====================
         const BUZZER_SVG = `<rect x="3" y="3" width="18" height="18" rx="4" fill="#212121" stroke="#f44336" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="#424242"/><circle cx="12" cy="12" r="2" fill="#111"/><path d="M16 8l3-3M16 16l3 3M8 8L5 5M8 16l-3 3" stroke="#f44336" stroke-width="1.5" stroke-linecap="round"/>`;
@@ -1315,7 +1321,7 @@
                     let centerY = (obj.y * CELL_SIZE) + camY + (CELL_SIZE / 2);
                     let lightRadius = CELL_SIZE * 2.5; 
                     const lampRGB = obj.type === 'rgb_lamp'
-                        ? ((RGB_LAMP_PARTS[obj.lampColor] || RGB_LAMP_PARTS.red).light)
+                        ? (hexToRgbArr(obj.lampRgb) || (RGB_LAMP_PARTS[obj.lampColor] || RGB_LAMP_PARTS.red).light)
                         : [255, 240, 150];
 
                     let gradient = ctxLight.createRadialGradient(centerX, centerY, CELL_SIZE / 2, centerX, centerY, lightRadius);
@@ -1653,7 +1659,11 @@
                             <label>Колір світла:</label>
                             <select id="cfg-lamp-color">${lampOpts}</select>
                         </div>
-                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Світиться обраним кольором, поки є вхідний сигнал; вночі освітлює навколо.</div>
+                        <div class="modal-row">
+                            <label>Відтінок RGB:</label>
+                            <input type="color" id="cfg-lamp-rgb" value="${clickedObj.lampRgb || (RGB_LAMP_PARTS[curLamp] || RGB_LAMP_PARTS.red).hex}">
+                        </div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Колесо — 16 млн відтінків для світла і лампочки; логіка схеми йде дискретним кольором вище.</div>
                     `;
                     configModal.style.display = 'flex';
                     return;
@@ -2354,7 +2364,7 @@
                     initialSvg = BUZZER_SVG;
                     div.classList.add('buzzer-block');
                 } else if (activeId === 'rgb_lamp') {
-                    initialSvg = generateRgbLampSVG('red', false);
+                    initialSvg = generateRgbLampSVG('red', false, '#ff5252');
                     div.classList.add('rgb-lamp-block');
                 } else if (activeId === 'note_block') {
                     initialSvg = NOTE_BLOCK_SVG;
@@ -2375,7 +2385,7 @@
                     leverToggled: false, lastSignalColor: 'red', frequency: 1,
                     buttonHoldTicks: 1, buttonTicksLeft: 0,
                     cannonRange: 6, cannonCooldown: 0,
-                    lampColor: 'red',
+                    lampColor: 'red', lampRgb: '#ff5252',
                     extended: false, rgbChannel: 'red', channelValue: 255,
                     smokePercent: 45, tempVal: 25, humidityVal: 60, batteryCharge: 100,
                     rainPercent: 50, buzzerFreq: 880, sensitivity: 80,
@@ -2781,8 +2791,11 @@
                 } else if (activeConfigTarget.type === 'rgb_lamp') {
                     const picked = document.getElementById('cfg-lamp-color').value;
                     activeConfigTarget.lampColor = RGB_LAMP_PARTS[picked] ? picked : 'red';
+                    let rgbVal = (document.getElementById('cfg-lamp-rgb').value || '').toLowerCase();
+                    if (!hexToRgbArr(rgbVal)) rgbVal = RGB_LAMP_PARTS[activeConfigTarget.lampColor].hex;
+                    activeConfigTarget.lampRgb = rgbVal;
                     const svgEl = activeConfigTarget.element.querySelector('svg');
-                    if (svgEl) svgEl.innerHTML = generateRgbLampSVG(activeConfigTarget.lampColor, !!activeConfigTarget.isActive);
+                    if (svgEl) svgEl.innerHTML = generateRgbLampSVG(activeConfigTarget.lampColor, !!activeConfigTarget.isActive, activeConfigTarget.lampRgb);
                     activeConfigTarget._lampLit = undefined;
                     const lBadge = activeConfigTarget.element.querySelector('.rgb-lamp-badge');
                     if (lBadge) lBadge.innerText = RGB_LAMP_BADGE[activeConfigTarget.lampColor] || 'R';
@@ -3065,7 +3078,7 @@
                     leverToggled: o.leverToggled, frequency: o.frequency,
                     buttonHoldTicks: o.buttonHoldTicks,
                     cannonRange: o.cannonRange,
-                    lampColor: o.lampColor,
+                    lampColor: o.lampColor, lampRgb: o.lampRgb,
                     rgbChannel: o.rgbChannel, channelValue: o.channelValue,
                     smokePercent: o.smokePercent, tempVal: o.tempVal, humidityVal: o.humidityVal,
                     batteryCharge: o.batteryCharge, rainPercent: o.rainPercent, buzzerFreq: o.buzzerFreq,
@@ -3149,7 +3162,7 @@
                 initialSvg = BUZZER_SVG;
                 div.classList.add('buzzer-block');
             } else if (type === 'rgb_lamp') {
-                initialSvg = generateRgbLampSVG(saved.lampColor || 'red', false);
+                initialSvg = generateRgbLampSVG(saved.lampColor || 'red', false, saved.lampRgb || '#ff5252');
                 div.classList.add('rgb-lamp-block');
             } else if (type === 'note_block') {
                 initialSvg = NOTE_BLOCK_SVG;
@@ -3175,7 +3188,7 @@
                 leverToggled: saved.leverToggled || false, lastSignalColor: 'red', frequency: saved.frequency ?? 1,
                 buttonHoldTicks: saved.buttonHoldTicks ?? 1, buttonTicksLeft: 0,
                 cannonRange: saved.cannonRange ?? 6, cannonCooldown: 0,
-                lampColor: saved.lampColor || 'red',
+                lampColor: saved.lampColor || 'red', lampRgb: saved.lampRgb || '#ff5252',
                 extended: false, rgbChannel: saved.rgbChannel || 'red', channelValue: saved.channelValue ?? 255,
                 smokePercent: saved.smokePercent ?? 45, tempVal: saved.tempVal ?? 25, humidityVal: saved.humidityVal ?? 60,
                 batteryCharge: saved.batteryCharge ?? 100,
@@ -5522,12 +5535,14 @@
                 } else if (obj.type === 'rgb_lamp') {
                     nextActive = hasInput;
                     const lampCol = obj.lampColor || 'red';
+                    const lampRgb = obj.lampRgb || '';
                     if (nextActive) signalColor = lampCol;
-                    if (obj._lampLit !== nextActive || obj._lampColShown !== lampCol) {
+                    if (obj._lampLit !== nextActive || obj._lampColShown !== lampCol || obj._lampRgbShown !== lampRgb) {
                         const lampSvg = obj.element.querySelector('svg');
-                        if (lampSvg) lampSvg.innerHTML = generateRgbLampSVG(lampCol, nextActive);
+                        if (lampSvg) lampSvg.innerHTML = generateRgbLampSVG(lampCol, nextActive, lampRgb);
                         obj._lampLit = nextActive;
                         obj._lampColShown = lampCol;
+                        obj._lampRgbShown = lampRgb;
                     }
                 } else if (obj.type === 'siren') {
                     nextActive = hasInput;
@@ -6488,7 +6503,7 @@
             transmitter: 'Шле сигнал по повітрю на приймач того самого каналу (1–99).',
             receiver: 'Ловить бездротовий сигнал зі свого каналу.',
             redstone_lamp: 'Світиться, поки є вхідний сигнал.',
-            rgb_lamp: 'RGB-лампа: світиться обраним у налаштуваннях кольором, поки є сигнал; вночі освітлює навколо.',
+            rgb_lamp: 'RGB-лампа: точний відтінок з колеса (16 млн кольорів) + дискретний колір логіки; вночі світить своїм відтінком.',
             rgb_selector: 'Видає сигнал обраного каналу R/G/B з рівнем 0–255.',
             web_display: 'Піксель великого екрана: сусідні WD-блоки зливаються в дисплей з текстом.',
             smoke_sensor: 'Віддає рівень диму (налаштовується, %), жовтий сигнал.',
