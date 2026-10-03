@@ -1027,7 +1027,7 @@
         // ==================== КОЛОНКА (медіа-плеєр: mp3 / mp4 / wav / ogg / m4a / webm) ====================
         const SPEAKER_SVG = `<rect x="3" y="3" width="18" height="18" rx="4" fill="#212121" stroke="#4fc3f7" stroke-width="2"/><path d="M7 10v4h3l4 3V7l-4 3H7z" fill="#4fc3f7"/><path d="M14 9a4 4 0 0 1 0 6M16 6.5a7.5 7.5 0 0 1 0 11" stroke="#b3e5fc" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
         const SPEAKER_FORMATS = ['auto', 'mp3', 'mp4', 'wav', 'ogg', 'm4a', 'webm'];
-        function ensureSpeakerMedia(obj) {
+        function ensureSpeakerAudio(obj) {
             try {
                 const src = obj.speakerUrl || '';
                 if (!src) return null;
@@ -1047,16 +1047,16 @@
                 return null;
             }
         }
-        function playSpeakerMedia(obj, fromStart = false) {
+        function playSpeakerAudio(obj, fromStart = false) {
             try {
-                const a = ensureSpeakerMedia(obj);
+                const a = ensureSpeakerAudio(obj);
                 if (!a) return;
                 if (fromStart) { try { a.currentTime = 0; } catch (e) {} }
                 const p = a.play();
                 if (p && p.catch) p.catch(() => {});
             } catch (e) {}
         }
-        function pauseSpeakerMedia(obj, reset = false) {
+        function pauseSpeakerAudio(obj, reset = false) {
             try {
                 const a = obj._audio;
                 if (!a) return;
@@ -1064,8 +1064,151 @@
                 if (reset) { try { a.currentTime = 0; } catch (e) {} }
             } catch (e) {}
         }
+        // ---- YouTube-джерело для колонки (посилання watch / youtu.be / embed / shorts) ----
+        function parseYoutubeId(url) {
+            if (!url) return '';
+            const m = String(url).trim().match(/(?:youtube\.com\/(?:watch\?[^#]*v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+            return m ? m[1] : '';
+        }
+        let _ytApiPromise = null;
+        let _ytApiFailed = false;
+        function loadYTApi() {
+            if (window.YT && window.YT.Player) return Promise.resolve();
+            if (_ytApiPromise) return _ytApiPromise;
+            _ytApiPromise = new Promise((resolve, reject) => {
+                let settled = false;
+                const prev = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => { settled = true; try { if (prev) prev(); } catch (e) {} resolve(); };
+                if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+                    const s = document.createElement('script');
+                    s.src = 'https://www.youtube.com/iframe_api';
+                    s.onerror = () => { if (!settled) { settled = true; _ytApiFailed = true; reject(new Error('yt api')); } };
+                    document.head.appendChild(s);
+                }
+                setTimeout(() => { if (!settled) { settled = true; _ytApiFailed = true; reject(new Error('yt timeout')); } }, 15000);
+            });
+            return _ytApiPromise;
+        }
+        function destroySpeakerYT(obj) {
+            try { if (obj._ytPlayer && obj._ytPlayer.destroy) obj._ytPlayer.destroy(); } catch (e) {}
+            try { if (obj._ytWrap && obj._ytWrap.parentNode) obj._ytWrap.parentNode.removeChild(obj._ytWrap); } catch (e) {}
+            obj._ytPlayer = null; obj._ytWrap = null; obj._ytId = null; obj._ytReady = false; obj._ytPending = null; obj._ytLoading = false; obj._ytState = -1; obj._ytError = 0;
+        }
+        function applySpeakerYTVolume(obj) {
+            try {
+                if (obj._ytPlayer && obj._ytReady && obj._ytPlayer.setVolume) {
+                    obj._ytPlayer.setVolume(Math.max(0, Math.min(100, obj.speakerVolume ?? 80)));
+                    if (obj._ytPlayer.setLoop) obj._ytPlayer.setLoop(!!obj.speakerLoop);
+                }
+            } catch (e) {}
+        }
+        function ensureSpeakerYT(obj) {
+            const id = parseYoutubeId(obj.speakerYoutube || '');
+            if (!id) { destroySpeakerYT(obj); return null; }
+            if (obj._ytId && obj._ytId !== id) destroySpeakerYT(obj);
+            obj._ytId = id;
+            if (!obj._ytWrap) {
+                const host = obj.element || document.body;
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'position:absolute;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none;left:0;top:0;';
+                const holder = document.createElement('div');
+                wrap.appendChild(holder);
+                host.appendChild(wrap);
+                obj._ytWrap = wrap;
+                obj._ytReady = false;
+                obj._ytLoading = true;
+                loadYTApi().then(() => {
+                    if (!obj._ytWrap || obj._ytId !== id) { obj._ytLoading = false; return; }
+                    try {
+                        obj._ytPlayer = new YT.Player(holder, {
+                            width: '2', height: '2', videoId: id,
+                            playerVars: { autoplay: 0, rel: 0, playsinline: 1 },
+                            events: {
+                                onReady: () => {
+                                    obj._ytReady = true;
+                                    obj._ytLoading = false;
+                                    applySpeakerYTVolume(obj);
+                                    if (obj._ytPending) { const p = obj._ytPending; obj._ytPending = null; playSpeakerYT(obj, p); }
+                                },
+                                onStateChange: (e) => {
+                                    obj._ytState = e.data;
+                                    if (e.data === 1) obj._ytError = 0;
+                                    setSpeakerBadge(obj);
+                                },
+                                onError: (e) => {
+                                    obj._ytError = e.data;
+                                    obj._ytPending = null;
+                                    setSpeakerBadge(obj);
+                                }
+                            }
+                        });
+                    } catch (e) { obj._ytLoading = false; }
+                }).catch(() => { obj._ytLoading = false; });
+            }
+            return obj;
+        }
+        function playSpeakerYT(obj, fromStart = false) {
+            ensureSpeakerYT(obj);
+            if (!parseYoutubeId(obj.speakerYoutube || '')) return;
+            if (!obj._ytReady || !obj._ytPlayer) {
+                obj._ytPending = fromStart;
+                if (!obj._ytLoading) {
+                    _ytApiPromise = null; _ytApiFailed = false;
+                    destroySpeakerYT(obj);
+                    ensureSpeakerYT(obj);
+                }
+                return;
+            }
+            try {
+                applySpeakerYTVolume(obj);
+                if (fromStart) { try { obj._ytPlayer.seekTo(0, true); } catch (e) {} }
+                obj._ytPlayer.playVideo();
+            } catch (e) {}
+        }
+        function pauseSpeakerYT(obj, reset = false) {
+            if (!obj._ytPlayer) { obj._ytPending = null; }
+            else {
+                try {
+                    obj._ytPending = null;
+                    obj._ytPlayer.pauseVideo();
+                    if (reset) { try { obj._ytPlayer.seekTo(0, true); } catch (e) {} }
+                } catch (e) {}
+            }
+            if (!parseYoutubeId(obj.speakerYoutube || '')) destroySpeakerYT(obj);
+        }
+        function playSpeakerMedia(obj, fromStart = false) {
+            if (parseYoutubeId(obj.speakerYoutube || '')) playSpeakerYT(obj, fromStart);
+            else { destroySpeakerYT(obj); playSpeakerAudio(obj, fromStart); }
+        }
+        function pauseSpeakerMedia(obj, reset = false) {
+            if (parseYoutubeId(obj.speakerYoutube || '') || obj._ytPlayer) pauseSpeakerYT(obj, reset);
+            else pauseSpeakerAudio(obj, reset);
+        }
         function stopSpeakerMedia(obj) {
             pauseSpeakerMedia(obj, true);
+        }
+        function setSpeakerBadge(obj) {
+            try {
+                const b = obj.element && obj.element.querySelector('.speaker-badge');
+                if (!b) return;
+                if (parseYoutubeId(obj.speakerYoutube || '')) b.innerText = obj._ytError ? 'YT⛔' : 'YT';
+            } catch (e) {}
+        }
+        function speakerStatusText(obj) {
+            const id = parseYoutubeId((obj && obj.speakerYoutube) || '');
+            if (!id) return 'YouTube не задано — буде грати файл/URL.';
+            if (obj._ytError === 101 || obj._ytError === 150) return '⛔ Це відео заборонене власником для вбудовування. Обери інше відео або завантаж файл з диска.';
+            if (obj._ytError === 100) return '⛔ Відео не знайдено (помилка 100) — перевір посилання.';
+            if (obj._ytError) return `⛔ Помилка YouTube-плеєра (${obj._ytError}).`;
+            if (obj._ytState === 1) return '▶ YouTube грає.';
+            if (obj._ytState === 2) return '⏸ YouTube на паузі (нема сигналу або гра на паузі).';
+            if (obj._ytState === 3) return '⏳ YouTube завантажується…';
+            if (_ytApiFailed) return '⛔ Не вдалося завантажити YouTube API — перевір інтернет і натисни «Зберегти» ще раз.';
+            return '⏳ YouTube-плеєр готується… (потрібен інтернет; звук зʼявиться при активному сигналі)';
+        }
+        if (!window._ytPreloadHooked) {
+            window._ytPreloadHooked = true;
+            window.addEventListener('pointerdown', () => { loadYTApi().catch(() => {}); }, { once: true });
         }
         // ==================== /КОЛОНКА ====================
         // Кнопки з регульованим утриманням: натискання тримає сигнал N тіків
@@ -1776,11 +1919,16 @@
                             <input type="text" id="cfg-speaker-url" placeholder="https://...mp3" value="${(clickedObj.speakerUrl || '').startsWith('data:') ? '' : (clickedObj.speakerUrl || '')}" style="width:130px;">
                         </div>
                         <div class="modal-row">
+                            <label>🎬 YouTube:</label>
+                            <input type="text" id="cfg-speaker-yt" placeholder="https://youtu.be/..." value="${clickedObj.speakerYoutube || ''}" style="width:130px;">
+                        </div>
+                        <div class="modal-row">
                             <label>🎵 З диска:</label>
                             <input type="file" id="cfg-speaker-file" accept="audio/*,video/mp4,video/webm,.mp3,.mp4,.wav,.ogg,.m4a,.webm" style="width:130px; font-size:10px;">
                         </div>
                         <input type="hidden" id="cfg-speaker-filedata" value="">
                         <div class="modal-row" id="cfg-speaker-filename" style="font-size:10px; opacity:0.75;">${clickedObj.speakerUrl ? ((clickedObj.speakerUrl.startsWith('data:') ? 'Завантажено файл (збережено)' : 'Вказано URL')) : 'Ще нічого не завантажено'}</div>
+                        <div class="modal-row" id="cfg-speaker-status" style="font-size:10px; opacity:0.9;"></div>
                         <div class="modal-row">
                             <label>Формат:</label>
                             <select id="cfg-speaker-format">${fmtOpts}</select>
@@ -1808,7 +1956,7 @@
                             <label>Зациклити:</label>
                             <input type="checkbox" id="cfg-speaker-loop" ${clickedObj.speakerLoop ? 'checked' : ''}>
                         </div>
-                        <div class="modal-row" style="font-size:10px; opacity:0.75;">Файли до 2 МБ зберігаються у світі, більші — грають до перезавантаження сторінки.</div>
+                        <div class="modal-row" style="font-size:10px; opacity:0.75;">YouTube-посилання має пріоритет над файлом/URL. Файли до 2 МБ зберігаються у світі, більші — грають до перезавантаження сторінки.</div>
                         <div class="modal-row" style="display:flex; gap:6px;"><button id="cfg-speaker-preview" style="flex:1;padding:6px;cursor:pointer;">▶ Прослухати</button><button id="cfg-speaker-stop" style="flex:1;padding:6px;cursor:pointer;">⏹ Стоп</button></div>
                     `;
                     configModal.style.display = 'flex';
@@ -1835,14 +1983,22 @@
                     document.getElementById('cfg-speaker-preview').addEventListener('click', () => {
                         const fd = document.getElementById('cfg-speaker-filedata').value;
                         const url = fd || document.getElementById('cfg-speaker-url').value.trim();
-                        if (!url) return;
-                        const tmp = { speakerUrl: url, speakerVolume: parseInt(document.getElementById('cfg-speaker-vol').value) || 80, speakerLoop: document.getElementById('cfg-speaker-loop').checked, _audio: activeConfigTarget._audio, _audioSrc: activeConfigTarget._audioSrc };
+                        const ytUrl = document.getElementById('cfg-speaker-yt').value.trim();
+                        if (!url && !ytUrl) return;
+                        const tmp = { speakerUrl: url, speakerYoutube: ytUrl, speakerVolume: parseInt(document.getElementById('cfg-speaker-vol').value) || 80, speakerLoop: document.getElementById('cfg-speaker-loop').checked, _audio: activeConfigTarget._audio, _audioSrc: activeConfigTarget._audioSrc, element: activeConfigTarget.element, _ytWrap: activeConfigTarget._ytWrap, _ytPlayer: activeConfigTarget._ytPlayer, _ytId: activeConfigTarget._ytId, _ytReady: activeConfigTarget._ytReady, _ytPending: null };
                         playSpeakerMedia(tmp, true);
-                        activeConfigTarget._audio = tmp._audio; activeConfigTarget._audioSrc = tmp._audioSrc;
+                        ['_audio', '_audioSrc', '_ytWrap', '_ytPlayer', '_ytId', '_ytReady', '_ytPending'].forEach(k => { activeConfigTarget[k] = tmp[k]; });
                     });
                     document.getElementById('cfg-speaker-stop').addEventListener('click', () => {
                         stopSpeakerMedia(activeConfigTarget);
                     });
+                    const renderSpkStatus = () => {
+                        const el = document.getElementById('cfg-speaker-status');
+                        if (el && activeConfigTarget) el.innerText = speakerStatusText(activeConfigTarget);
+                    };
+                    renderSpkStatus();
+                    if (window._spkStTimer) clearInterval(window._spkStTimer);
+                    window._spkStTimer = setInterval(renderSpkStatus, 1000);
                     return;
                 }
 
@@ -2523,7 +2679,7 @@
                     smokePercent: 45, tempVal: 25, humidityVal: 60, batteryCharge: 100,
                     rainPercent: 50, buzzerFreq: 880, sensitivity: 80,
                     noteName: 'DO', noteFreq: 261.63, noteDuration: 2, noteTimbre: 'piano', noteMode: 'hold',
-                    speakerUrl: '', speakerFormat: 'auto', speakerVolume: 80, speakerPauseMode: 'resume', speakerTrigger: 'hold', speakerLoop: false,
+                    speakerUrl: '', speakerFormat: 'auto', speakerVolume: 80, speakerPauseMode: 'resume', speakerTrigger: 'hold', speakerLoop: false, speakerYoutube: '',
                     overchargeTicks: 0,
                     lastScanState: undefined,
                     repeaterDelay: 1, signalBuffer: [],
@@ -2905,6 +3061,7 @@
         }
 
         document.getElementById('config-modal-save').onclick = () => {
+            if (window._spkStTimer) { clearInterval(window._spkStTimer); window._spkStTimer = null; }
             if (activeConfigTarget) {
                 if (activeConfigTarget.w !== undefined) {
                     activeConfigTarget.displayTftText = document.getElementById('cfg-text').value || "HELLO";
@@ -2954,9 +3111,12 @@
                 } else if (activeConfigTarget.type === 'speaker') {
                     const fileData = document.getElementById('cfg-speaker-filedata').value;
                     const urlText = document.getElementById('cfg-speaker-url').value.trim();
+                    const ytText = document.getElementById('cfg-speaker-yt').value.trim();
                     stopSpeakerMedia(activeConfigTarget);
                     activeConfigTarget._audio = null; activeConfigTarget._audioSrc = null;
+                    destroySpeakerYT(activeConfigTarget);
                     activeConfigTarget.speakerUrl = fileData || urlText || '';
+                    activeConfigTarget.speakerYoutube = ytText || '';
                     const fmtVal = document.getElementById('cfg-speaker-format').value;
                     activeConfigTarget.speakerFormat = SPEAKER_FORMATS.includes(fmtVal) ? fmtVal : 'auto';
                     activeConfigTarget.speakerTrigger = document.getElementById('cfg-speaker-trigger').value || 'hold';
@@ -2964,7 +3124,7 @@
                     activeConfigTarget.speakerVolume = Math.max(0, Math.min(100, parseInt(document.getElementById('cfg-speaker-vol').value) || 0));
                     activeConfigTarget.speakerLoop = document.getElementById('cfg-speaker-loop').checked;
                     const sBadge = activeConfigTarget.element.querySelector('.speaker-badge');
-                    if (sBadge) sBadge.innerText = (activeConfigTarget.speakerFormat || 'auto').toUpperCase();
+                    if (sBadge) sBadge.innerText = parseYoutubeId(activeConfigTarget.speakerYoutube || '') ? 'YT' : (activeConfigTarget.speakerFormat || 'auto').toUpperCase();
                 } else if (activeConfigTarget.type === 'seven_segment') {
                     const dVal = Math.max(0, Math.min(9, parseInt(document.getElementById('cfg-seg-digit').value) || 0));
                     activeConfigTarget.displayDigit = dVal;
@@ -3238,7 +3398,7 @@
                     smokePercent: o.smokePercent, tempVal: o.tempVal, humidityVal: o.humidityVal,
                     batteryCharge: o.batteryCharge, rainPercent: o.rainPercent, buzzerFreq: o.buzzerFreq,
                     noteName: o.noteName, noteFreq: o.noteFreq, noteDuration: o.noteDuration, noteTimbre: o.noteTimbre, noteMode: o.noteMode,
-                    speakerUrl: o.speakerUrl, speakerFormat: o.speakerFormat, speakerVolume: o.speakerVolume, speakerPauseMode: o.speakerPauseMode, speakerTrigger: o.speakerTrigger, speakerLoop: o.speakerLoop,
+                    speakerUrl: o.speakerUrl, speakerFormat: o.speakerFormat, speakerVolume: o.speakerVolume, speakerPauseMode: o.speakerPauseMode, speakerTrigger: o.speakerTrigger, speakerLoop: o.speakerLoop, speakerYoutube: o.speakerYoutube,
                     sensitivity: o.sensitivity, repeaterDelay: o.repeaterDelay,
                     targetAngle: o.targetAngle, displayDigit: o.displayDigit,
                     keyLabel: o.keyLabel, assignedCode: o.assignedCode,
@@ -3353,7 +3513,7 @@
                 batteryCharge: saved.batteryCharge ?? 100,
                 rainPercent: saved.rainPercent ?? 50, buzzerFreq: saved.buzzerFreq ?? 880, sensitivity: saved.sensitivity ?? 80,
                 noteName: saved.noteName || 'DO', noteFreq: saved.noteFreq ?? 261.63, noteDuration: saved.noteDuration ?? 2, noteTimbre: saved.noteTimbre || 'piano', noteMode: saved.noteMode || 'hold',
-                speakerUrl: saved.speakerUrl || '', speakerFormat: saved.speakerFormat || 'auto', speakerVolume: saved.speakerVolume ?? 80, speakerPauseMode: saved.speakerPauseMode || 'resume', speakerTrigger: saved.speakerTrigger || 'hold', speakerLoop: !!saved.speakerLoop,
+                speakerUrl: saved.speakerUrl || '', speakerFormat: saved.speakerFormat || 'auto', speakerVolume: saved.speakerVolume ?? 80, speakerPauseMode: saved.speakerPauseMode || 'resume', speakerTrigger: saved.speakerTrigger || 'hold', speakerLoop: !!saved.speakerLoop, speakerYoutube: saved.speakerYoutube || '',
                 overchargeTicks: 0,
                 lastScanState: undefined,
                 repeaterDelay: saved.repeaterDelay ?? 1, signalBuffer: [],
@@ -3424,7 +3584,7 @@
             if (type === 'cannon') { const b = document.createElement('div'); b.className = 'cannon-badge'; b.innerText = `➤${go.cannonRange ?? 6}`; div.appendChild(b); }
             if (type === 'rgb_lamp') { const b = document.createElement('div'); b.className = 'rgb-lamp-badge'; b.innerText = RGB_LAMP_BADGE[go.lampColor] || 'R'; div.appendChild(b); }
             if (type === 'note_block') { const b = document.createElement('div'); b.className = 'note-block-badge'; b.innerText = `${go.noteName || 'DO'}`; div.appendChild(b); }
-            if (type === 'speaker') { const b = document.createElement('div'); b.className = 'speaker-badge'; b.innerText = `${(go.speakerFormat || 'auto').toUpperCase()}`; div.appendChild(b); }
+            if (type === 'speaker') { const b = document.createElement('div'); b.className = 'speaker-badge'; b.innerText = parseYoutubeId(go.speakerYoutube || '') ? 'YT' : `${(go.speakerFormat || 'auto').toUpperCase()}`; div.appendChild(b); }
             if (type === 'rain_sensor') { const b = document.createElement('div'); b.className = 'rain-sensor-badge'; b.innerText = `${go.rainPercent}%`; div.appendChild(b); }
             if (type === 'tilt_sensor') { const b = document.createElement('div'); b.className = 'tilt-sensor-badge'; b.innerText = `${go.sensitivity}%`; div.appendChild(b); }
             if (type === 'transmitter' || type === 'receiver' || type === 'teleporter') { div.classList.add('freq-badge'); div.setAttribute('data-freq', `CH:${go.frequency}`); }
@@ -6699,7 +6859,7 @@
             honey_block: 'Мед: липне до сусідів, зчіплює конструкцію.',
             buzzer: 'Пищить із заданою частотою, поки є сигнал (клік — налаштування).',
             note_block: 'Грає ноту DO–DO2 (є фортепіано); режими: тягнути / раз / повтор.',
-            speaker: 'Колонка: грає mp3/mp4/wav/ogg з URL або з диска; поява/зникнення сигналу; після паузи — продовжити або заново.',
+            speaker: 'Колонка: грає mp3/mp4/wav/ogg з URL, з диска або YouTube-відео за посиланням; поява/зникнення сигналу; після паузи — продовжити або заново.',
             rain_sensor: 'Віддає рівень опадів; реагує на дощ.',
             tilt_sensor: 'Спрацьовує від нахилу і струсу з заданою чутливістю.',
             rotator_mechanism: 'По фронту сигналу повертає сусідні блоки на 90°.',
