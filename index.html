@@ -1310,7 +1310,25 @@
         }
         function destroyMediaPlayer(obj) {
             try { if (obj._mdYt && obj._mdYt.destroy) obj._mdYt.destroy(); } catch (e) {}
-            obj._mdYt = null; obj._mdVideo = null; obj._mdWantPlay = false; obj._mdPlain = null; obj._mdPlainId = null;
+            obj._mdYt = null; obj._mdVideo = null; obj._mdWantPlay = false; obj._mdPlain = null; obj._mdPlainId = null; obj._mdYtId = null;
+        }
+        // Звичайний YouTube-embed (як на GitHub): без YT Iframe API — так не буває помилки 153
+        // від autoplay зi звуком / host nocookie / file:// origin. Керування — через postMessage.
+        function mdYoutubeSrc(id, obj) {
+            let s = `https://www.youtube.com/embed/${id}?rel=0&playsinline=1&enablejsapi=1`;
+            if (obj && obj.mediaLoop) s += `&loop=1&playlist=${id}`;
+            if (location.protocol.indexOf('http') === 0) { try { s += '&origin=' + encodeURIComponent(location.origin); } catch (e) {} }
+            return s;
+        }
+        function mdPost(obj, func, args) {
+            try {
+                const w = obj._mdPlain && obj._mdPlain.contentWindow;
+                if (!w) return;
+                w.postMessage(JSON.stringify({ event: 'command', func: func, args: args || '' }), '*');
+            } catch (e) {}
+        }
+        function mdApplyVolume(obj) {
+            mdPost(obj, 'setVolume', [Math.max(0, Math.min(100, obj.mediaVolume ?? 80))]);
         }
         function buildMediaBody(obj, kind) {
             const body = obj._mdBody;
@@ -1338,51 +1356,58 @@
             } else if (kind === 'youtube') {
                 const id = parseYoutubeId(obj.mediaYoutube || '');
                 if (!id) return;
-                const holder = document.createElement('div');
-                body.appendChild(holder);
+                obj._mdYtId = id; obj._mdLoopShown = !!obj.mediaLoop;
+                if (location.protocol === 'file:') {
+                    // YouTube з липня 2025 вимагає HTTP Referer — з file:// вбудовування
+                    // фізично неможливе (завжди помилка 153). Показуємо обкладинку + кнопку,
+                    // щоб ніколи не було битого плеєра. Через http(s) буде звичайне відео.
+                    const box = document.createElement('div');
+                    box.style.cssText = 'width:100%;display:flex;flex-direction:column;align-items:stretch;background:#111;';
+                    const a = document.createElement('a');
+                    a.href = `https://www.youtube.com/watch?v=${id}`;
+                    a.target = '_blank'; a.rel = 'noopener';
+                    a.style.cssText = 'display:block;position:relative;text-decoration:none;';
+                    const thumb = document.createElement('img');
+                    thumb.src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+                    thumb.alt = 'Мініатюра відео';
+                    thumb.style.cssText = 'width:100%;display:block;background:#000;';
+                    thumb.onerror = () => { thumb.style.display = 'none'; };
+                    a.appendChild(thumb);
+                    const play = document.createElement('div');
+                    play.innerText = '▶ Дивитись на YouTube';
+                    play.style.cssText = 'text-align:center;padding:8px;background:#c00;color:#fff;font-size:13px;font-weight:bold;';
+                    a.appendChild(play);
+                    box.appendChild(a);
+                    const hint = document.createElement('div');
+                    hint.innerText = 'Щоб відео грало всередині гри — відкрий її через сервер (http://localhost:3000), а не як файл.';
+                    hint.style.cssText = 'padding:6px 8px;color:#aaa;font-size:11px;text-align:center;';
+                    box.appendChild(hint);
+                    body.appendChild(box);
+                    obj._mdPlain = null; obj._mdPlainId = id;
+                    return;
+                }
                 const W = mediaCardWidth(obj);
-                loadYTApi().then(() => {
-                    if (!holder.isConnected || parseYoutubeId(obj.mediaYoutube || '') !== id) return;
-                    try {
-                        obj._mdYt = new YT.Player(holder, {
-                            width: String(W), height: String(Math.round(W * 9 / 16)), videoId: id,
-                            playerVars: { autoplay: 0, rel: 0, playsinline: 1 },
-                            events: {
-                                onReady: (e) => {
-                                    try {
-                                        e.target.setVolume(Math.max(0, Math.min(100, obj.mediaVolume ?? 80)));
-                                        if (e.target.setLoop) e.target.setLoop(!!obj.mediaLoop);
-                                    } catch (_e) {}
-                                    const bb = obj.element && obj.element.querySelector('.media-badge');
-                                    if (bb) bb.innerText = mediaBadgeText(obj);
-                                    if (obj._mdWantPlay) { const fs = obj._mdWantFromStart; obj._mdWantPlay = false; playMediaBody(obj, 'youtube', fs); }
-                                },
-                                onError: (e) => {
-                                    obj._mdWantPlay = false;
-                                    if (e.data === 153) embedPlainCard(obj);
-                                    else showCardYTError(obj, e.data);
-                                }
-                            }
-                        });
-                    } catch (e) {}
-                }).catch(() => {});
+                const f = document.createElement('iframe');
+                f.width = String(W); f.height = String(Math.round(W * 9 / 16));
+                f.style.cssText = 'width:100%;display:block;border:0;';
+                f.title = 'YouTube відео';
+                f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+                f.allowFullscreen = true;
+                try { f.referrerPolicy = 'strict-origin-when-cross-origin'; } catch (e) {}
+                try { f.loading = 'lazy'; } catch (e) {}
+                f.src = mdYoutubeSrc(id, obj);
+                f.onload = () => { mdApplyVolume(obj); if (obj._mdCard && obj._mdCard.style.display !== 'none') mdPost(obj, 'playVideo'); };
+                body.appendChild(f);
+                obj._mdPlain = f; obj._mdPlainId = id;
             }
         }
         function embedPlainCard(obj) {
-            const id = parseYoutubeId(obj.mediaYoutube || '');
-            if (!id || !obj._mdBody) return;
-            try { if (obj._mdYt && obj._mdYt.destroy) obj._mdYt.destroy(); } catch (e) {}
-            obj._mdYt = null;
-            obj._mdBody.innerHTML = '';
-            const W = mediaCardWidth(obj);
-            const f = document.createElement('iframe');
-            f.width = String(W); f.height = String(Math.round(W * 9 / 16));
-            f.style.cssText = 'width:100%;display:block;border:0;';
-            f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-            f.allowFullscreen = true;
-            f.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&playsinline=1`;
-            obj._mdBody.appendChild(f);
-            obj._mdPlain = f; obj._mdPlainId = id;
+            if (!obj._mdBody) return;
+            const kind = detectMediaKind(obj);
+            if (kind !== 'youtube') return;
+            obj._mdKind = null;
+            buildMediaBody(obj, kind);
+            if (obj._mdPlain) { mdApplyVolume(obj); mdPost(obj, 'playVideo'); }
             const bb = obj.element && obj.element.querySelector('.media-badge');
             if (bb) bb.innerText = 'YT▶';
         }
@@ -1445,16 +1470,9 @@
                 } catch (e) {}
             } else if (kind === 'youtube') {
                 if (obj._mdPlain) {
-                    if (!obj._mdPlain.src && obj._mdPlainId) {
-                        try { obj._mdPlain.src = `https://www.youtube.com/embed/${obj._mdPlainId}?autoplay=1&rel=0&playsinline=1`; } catch (e) {}
-                    }
-                } else if (obj._mdYt && obj._mdYt.playVideo) {
-                    try {
-                        obj._mdYt.setVolume(Math.max(0, Math.min(100, obj.mediaVolume ?? 80)));
-                        if (obj._mdYt.setLoop) obj._mdYt.setLoop(!!obj.mediaLoop);
-                        if (fromStart) { try { obj._mdYt.seekTo(0, true); } catch (e) {} }
-                        obj._mdYt.playVideo();
-                    } catch (e) {}
+                    if (fromStart) mdPost(obj, 'seekTo', [0, true]);
+                    mdApplyVolume(obj);
+                    mdPost(obj, 'playVideo');
                 } else {
                     obj._mdWantPlay = true; obj._mdWantFromStart = fromStart;
                 }
@@ -1463,7 +1481,7 @@
         function pauseMediaBody(obj, reset = false) {
             obj._mdWantPlay = false;
             if (obj._mdPlain) {
-                try { obj._mdPlain.src = ''; } catch (e) {}
+                try { mdPost(obj, 'pauseVideo'); if (reset) mdPost(obj, 'seekTo', [0, true]); } catch (e) {}
             }
             if (obj._mdVideo) {
                 try { obj._mdVideo.pause(); if (reset) { try { obj._mdVideo.currentTime = 0; } catch (e) {} } } catch (e) {}
@@ -1498,7 +1516,9 @@
             if (!obj._mdCard.isConnected) root.appendChild(obj._mdCard);
             obj._mdCard.style.display = 'block';
             obj._mdCard.style.width = mediaCardWidth(obj) + 'px';
-            if (obj._mdKind !== kind || !obj._mdBody.firstChild) buildMediaBody(obj, kind);
+            const curYtId = kind === 'youtube' ? parseYoutubeId(obj.mediaYoutube || '') : '';
+            const curLoop = !!obj.mediaLoop;
+            if (obj._mdKind !== kind || !obj._mdBody.firstChild || (kind === 'youtube' && (obj._mdYtId !== curYtId || obj._mdLoopShown !== curLoop))) buildMediaBody(obj, kind);
             playMediaBody(obj, kind, false);
         }
         function hideMediaDisplay(obj, reset = false) {
